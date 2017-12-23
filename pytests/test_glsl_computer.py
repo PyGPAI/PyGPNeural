@@ -1,6 +1,4 @@
 import unittest as ut
-import minesim.GLSLComputer as glcpu
-from minesim.glsl_util import glsl_import_filter
 import os
 
 import numpy as np
