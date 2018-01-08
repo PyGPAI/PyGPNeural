@@ -1,5 +1,5 @@
-from pglsl_cpu import GLSLComputer
 import numpy as np
+import pyopencl as cl
 import pubsub
 
 """def read_in_file(*shader_file):
@@ -10,61 +10,71 @@ import pubsub
     return shader_text"""
 
 import os
+
 my_dir = os.path.dirname(os.path.abspath(__file__))
 
 from cv_pubsubs import cv_webcam_pub, cv_window_sub
 
-if __name__ == '__main__':
-    shad_str = ''
-    with open(my_dir+os.sep+'rgc.glsl') as rgc:
-        shad_str = rgc.read()
 
-    width=640
+def get_all_cl_gpus():
+    gpu_list = []
+    for platf in cl.get_platforms():
+        gpu_list.extend(platf.get_devices(cl.device_type.GPU))
+
+    return gpu_list
+
+
+if __name__ == '__main__':
+
+    width = 640
     height = 480
     colors = 3
-    gpu = GLSLComputer.GLSLComputer(shad_str,
-                                    width=width, height=height, colors=colors,
-                                    whichBuffer=0)
-    buff = gpu.ctx.buffer(data=np.zeros(width * height * colors).astype(dtype=np.float32).tobytes())
-    buff.bind_to_storage_buffer(0)
 
-    buff2 = gpu.ctx.buffer(data=np.zeros(width * height * colors).astype(dtype=np.float32).tobytes())
-    buff2.bind_to_storage_buffer(1)
+    cl_str = ''
+    with open(my_dir + os.sep + 'rgc.cl') as rgc:
+        cl_str = rgc.read()
+
+    cl_str = cl_str.format(width, height, colors, 1.0)
+
+    gpu = get_all_cl_gpus()[-1]  # get last gpu (typically dedicated one on devices with multiple)
+
+    ctx = cl.Context([gpu])
+
+    queue = cl.CommandQueue(ctx)
+
+    mf = cl.mem_flags
+
+    prog = cl.Program(ctx, cl_str).build()
 
     from cv_pubsubs.cv_window_sub import frameDict, cv_win_sub
 
+
     def camHandler(frame, camId):
-        frameDict[str(camId)+"Frame"]= frame
+        frameDict[str(camId) + "Frame"] = frame
+
 
     from scipy.ndimage.filters import gaussian_filter
 
-    storeFrame = np.zeros(width * height * colors).astype(dtype=np.float32).reshape(height, width, colors)
+    out_np = np.zeros((width, height, colors), dtype=np.uint32)
+    out_buf = cl.Buffer(ctx, mf.WRITE_ONLY, out_np.nbytes)
 
-    def gpuMainUpdate(frame):
-        global storeFrame
-        if gpu.cpu.uniforms['whichBuffer'].value == 0:
-            prevGot = np.frombuffer(buff.read(), dtype=np.float32).reshape(height, width, colors)
-            frameOut = prevGot
-            storeFrame = gaussian_filter(np.clip((storeFrame + prevGot)/1.9, 0,255),3)
-            buff.write(np.clip(frame+storeFrame, 0,255).astype(dtype=np.float32).tobytes())
+    def gpuMainUpdate(frame # type: np.ndarray
+                      ):
+        global prog, outFrame, queue, out_buf, out_np
 
-        else:
-            prevGot = np.frombuffer(buff2.read(), dtype=np.float32).reshape(height, width, colors)
-            frameOut = prevGot
-            storeFrame = gaussian_filter(np.clip((storeFrame + prevGot)/1.9, 0,255),3)
-            buff2.write(np.clip(frame+storeFrame, 0,255).astype(dtype=np.float32).tobytes())
+        in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame)
 
-        gpu.cpu.run(width, height, colors)
-        if gpu.cpu.uniforms['whichBuffer'].value == 0:
-            gpu.cpu.uniforms['whichBuffer'].value = 1
-        else:
-            gpu.cpu.uniforms['whichBuffer'].value = 0
-        return frameOut/255
+        prog.rgc(queue, (width,height,colors), None, in_buf, out_buf)
 
+        cl.enqueue_copy(queue, out_np, out_buf).wait()
 
-    t = cv_webcam_pub.init_cv_cam_pub_handler(0,camHandler)
+        return out_np.astype(np.uint8)
 
-    cv_win_sub(names=['cammy'], inputVidGlobalNames=['0Frame'], callbacks=[gpuMainUpdate])
+    t = cv_webcam_pub.init_cv_cam_pub_handler(0, camHandler)
 
-    pubsub.publish("cvcamhandlers.0.cmd", 'q')
+    cv_win_sub(names=['0'],
+               inputVidGlobalNames=['0Frame'],
+               callbacks=[gpuMainUpdate])
+
     t.join()
+
