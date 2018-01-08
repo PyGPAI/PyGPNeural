@@ -55,14 +55,14 @@ if __name__ == '__main__':
 
     from scipy.ndimage.filters import gaussian_filter
 
-    out_np = np.zeros((width, height, colors), dtype=np.uint32)
+    out_np = np.zeros((height, width, colors), dtype=np.uint32)
     out_buf = cl.Buffer(ctx, mf.WRITE_ONLY, out_np.nbytes)
 
     def gpuMainUpdate(frame # type: np.ndarray
                       ):
         global prog, outFrame, queue, out_buf, out_np
 
-        in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame)
+        in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame.astype(np.uint32))
 
         prog.rgc(queue, (width,height,colors), None, in_buf, out_buf)
 

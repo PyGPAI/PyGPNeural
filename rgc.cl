@@ -96,6 +96,6 @@ __kernel void rgc(
     }}*/
     //rgc_out[coord.y*height*colors+coord.x*colors + coord.z] = rgb_in[coord.y*height*colors+coord.x*colors + coord.z]/2;
 
-    rgc_out[coord.x] = 255;
+    rgc_out[coord.x*60*3+coord.y*3+coord.z] = rgb_in[coord.x*60*3+coord.y*3+coord.z];
     //write_imageui(rgc_out, coord, colorOut);
 }}
