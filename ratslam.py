@@ -31,10 +31,10 @@ if __name__ == '__main__':
     colors = 3
 
     cl_str = ''
-    with open(my_dir + os.sep + 'rgc.cl') as rgc:
+    with open(my_dir + os.sep + 'naive_rgc.cl') as rgc:
         cl_str = rgc.read()
 
-    cl_str = cl_str.format(width, height, colors, 1.0)
+    cl_str = cl_str.format(width, height, colors, 127)
 
     gpu = get_all_cl_gpus()[-1]  # get last gpu (typically dedicated one on devices with multiple)
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame.astype(np.uint32))
 
-        prog.rgc(queue, (width,height,colors), None, in_buf, out_buf)
+        prog.rgc(queue, (height,width,colors), None, in_buf, out_buf)
 
         cl.enqueue_copy(queue, out_np, out_buf).wait()
 
