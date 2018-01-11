@@ -26,12 +26,12 @@ def get_all_cl_gpus():
 
 if __name__ == '__main__':
 
-    width = 640
-    height = 480
+    width = 1280
+    height = 720
     colors = 3
 
     cl_str = ''
-    with open(my_dir + os.sep + 'naive_rgc.cl') as rgc:
+    with open(my_dir + os.sep + 'x-ganglion midget filter.cl') as rgc:
         cl_str = rgc.read()
 
     cl_str = cl_str.format(width, height, colors, 127)
@@ -55,20 +55,20 @@ if __name__ == '__main__':
 
     from scipy.ndimage.filters import gaussian_filter
 
-    out_np = np.zeros((height, width, colors), dtype=np.uint32)
+    out_np = np.zeros((height, width, colors), dtype=np.uint8)
     out_buf = cl.Buffer(ctx, mf.WRITE_ONLY, out_np.nbytes)
 
     def gpuMainUpdate(frame # type: np.ndarray
                       ):
         global prog, outFrame, queue, out_buf, out_np
 
-        in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame.astype(np.uint32))
+        in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame)
 
-        prog.rgc(queue, (height,width,colors), None, in_buf, out_buf)
+        prog.rgc(queue, (height,width,3), None, in_buf, out_buf)
 
         cl.enqueue_copy(queue, out_np, out_buf).wait()
 
-        return out_np.astype(np.uint8)
+        return out_np
 
     t = cv_webcam_pub.init_cv_cam_pub_handler(0, camHandler)
 
