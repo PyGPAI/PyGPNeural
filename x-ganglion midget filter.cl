@@ -69,7 +69,7 @@ __kernel void rgc(
 
     //rgc_out[gindex3( coord )] = 0;
 
-    if( c > csq1+5){{
+    if( c > csq1+3){{
         rgc_out[gindex3( coord )] = 255;
     }}
     else{{
