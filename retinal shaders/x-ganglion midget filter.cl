@@ -11,9 +11,9 @@ __constant float edge_brightness = {};
 
 #define gindex3( p ) p.x*width*colors+p.y*colors+p.z
 
-uint guardGetColor(
+uchar guardGetColor(
     int3 pos,
-    const __global uint* rgb_in
+    const __global uchar* rgb_in
 ){{
     if (pos.x<0 || pos.y<0 || pos.x>height || pos.y>width){{
         return edge_brightness;
@@ -23,10 +23,10 @@ uint guardGetColor(
     }}
 }}
 
-uint get_surround_square_avg(
+uchar get_surround_square_avg(
     int3 pos,
     uint rad,
-    const __global uint* rgb_in
+    const __global uchar* rgb_in
 ){{
     uint surround = 0;
     uint num = 0;
@@ -54,26 +54,26 @@ uint get_surround_square_avg(
     return surround/num;
 }}
 
-// todo: pass in uint 32 values. Use bit masking and keep track of mod 4 to work on individual uint8s
 // todo: pass in random seed and use it w/ global values to determine radius for current pixel
 // todo: add exhaustion arrays in, replace +5 with them.
 __kernel void rgc(
-    const __global uint* rgb_in,
-    __global uint* rgc_out)
+    const __global uchar* rgb_in,
+    __global uchar* rgc_out)
 {{
     int3 coord = (int3)(get_global_id(0), get_global_id(1), get_global_id(2));
 
-    uint csq1 = get_surround_square_avg(coord, 1, rgb_in);
+    uchar csq1 = get_surround_square_avg(coord, 1, rgb_in);
+    uchar c = guardGetColor(coord, rgb_in);
+    uchar diff = c-csq1+1;
 
-    uint c = guardGetColor(coord, rgb_in);
+    rgc_out[gindex3( coord )] = 0;
 
-    //rgc_out[gindex3( coord )] = 0;
-
-    if( c > csq1+3){{
-        rgc_out[gindex3( coord )] = 255;
-    }}
-    else{{
-        rgc_out[gindex3( coord )] = 0;
+    if( diff>0){{
+        if (diff<=7){{
+            rgc_out[gindex3( coord )] = 1<<(diff);
+        }}else{{
+            rgc_out[gindex3( coord )] = 255;
+        }}
     }}
 
 

@@ -23,58 +23,76 @@ def get_all_cl_gpus():
 
     return gpu_list
 
+def readCLFile(shaderFile):
+    cl_str = ''
+    with open(shaderFile) as rgc:
+        cl_str = rgc.read()
+    return cl_str
 
-if __name__ == '__main__':
-
-    width = 1280
-    height = 720
+def compileRGC(
+        shaderFile= my_dir + os.sep + 'retinal shaders'+ os.sep+ 'x-ganglion midget filter combined.cl',
+        requestSize=(1280, 720),  # type: Tuple[int, int]
+        gpu=None
+    ):
     colors = 3
 
-    cl_str = ''
-    with open(my_dir + os.sep + 'x-ganglion midget filter.cl') as rgc:
-        cl_str = rgc.read()
+    cl_str = readCLFile(shaderFile).format(requestSize[0], requestSize[1], colors, 127)
 
-    cl_str = cl_str.format(width, height, colors, 127)
+    if gpu is None:
+        gpus = get_all_cl_gpus()  # get last gpu (typically dedicated one on devices with multiple)
+        gpu = [gpus[0]]
 
-    gpu = get_all_cl_gpus()[-1]  # get last gpu (typically dedicated one on devices with multiple)
-
-    ctx = cl.Context([gpu])
-
+    ctx = cl.Context(gpu)
     queue = cl.CommandQueue(ctx)
-
     mf = cl.mem_flags
-
     prog = cl.Program(ctx, cl_str).build()
 
-    from cv_pubsubs.cv_window_sub import frameDict, cv_win_sub
+    return (prog, queue, mf, ctx)
 
+allCallbacks = []
 
-    def camHandler(frame, camId):
-        frameDict[str(camId) + "Frame"] = frame
+def runRGC(
+            requestSize=(1280, 720),  # type: Tuple[int, int]
 
+           ):
 
-    from scipy.ndimage.filters import gaussian_filter
+    global allCallbacks
 
-    out_np = np.zeros((height, width, colors), dtype=np.uint8)
+    prog, queue, mf, ctx = compileRGC(requestSize=requestSize)
+
+    out_np = np.zeros((requestSize[1], requestSize[0]), dtype=np.uint8)
     out_buf = cl.Buffer(ctx, mf.WRITE_ONLY, out_np.nbytes)
 
     def gpuMainUpdate(frame # type: np.ndarray
                       ):
-        global prog, outFrame, queue, out_buf, out_np
-
         in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame)
 
-        prog.rgc(queue, (height,width,3), None, in_buf, out_buf)
+        prog.rgc(queue, (requestSize[1],requestSize[0],3), None, in_buf, out_buf)
 
         cl.enqueue_copy(queue, out_np, out_buf).wait()
 
         return out_np
 
-    t = cv_webcam_pub.init_cv_cam_pub_handler(0, camHandler)
+    allCallbacks.append(gpuMainUpdate)
 
-    cv_win_sub(names=['0'],
-               inputVidGlobalNames=['0Frame'],
-               callbacks=[gpuMainUpdate])
+def DisplayRGC(cam):
+    from cv_pubsubs.cv_window_sub import frameDict, cv_win_sub
 
+    runRGC()
+
+    cam = 0
+
+    def camHandler(frame, camId):
+        frameDict[str(camId) + "Frame"] = frame
+
+    t = cv_webcam_pub.init_cv_cam_pub_handler(cam, camHandler)
+
+    cv_win_sub(names=[str(cam)],
+               inputVidGlobalNames=[str(cam)+'Frame'],
+               callbacks=allCallbacks)
+
+    return t
+
+if __name__ == '__main__':
+    t = DisplayRGC(0)
     t.join()
-
