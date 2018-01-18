@@ -29,14 +29,15 @@ def readCLFile(shaderFile):
         cl_str = rgc.read()
     return cl_str
 
-def compileRGC(
-        shaderFile= my_dir + os.sep + 'retinal shaders'+ os.sep+ 'x-ganglion midget filter combined.cl',
+def compileRNG(
+        shaderFile= None,
         requestSize=(1280, 720),  # type: Tuple[int, int]
         gpu=None
     ):
     colors = 3
-
-    cl_str = readCLFile(shaderFile).format(requestSize[0], requestSize[1], colors, 127)
+    if shaderFile is None:
+        shaderFile = my_dir + os.sep + 'retinal shaders' + os.sep + 'rng.cl'
+    cl_str = readCLFile(shaderFile).format(requestSize[0], requestSize[1], colors)
 
     if gpu is None:
         gpus = get_all_cl_gpus()  # get last gpu (typically dedicated one on devices with multiple)
@@ -51,23 +52,25 @@ def compileRGC(
 
 allCallbacks = []
 
-def runRGC(
+import time
+def runRNG(
             requestSize=(1280, 720),  # type: Tuple[int, int]
-
            ):
 
     global allCallbacks
 
-    prog, queue, mf, ctx = compileRGC(requestSize=requestSize)
+    prog, queue, mf, ctx = compileRNG(
+        requestSize=requestSize)
 
-    out_np = np.zeros((requestSize[1], requestSize[0]), dtype=np.uint8)
+    out_np = np.zeros((requestSize[1], requestSize[0], 3), dtype=np.uint8)
     out_buf = cl.Buffer(ctx, mf.WRITE_ONLY, out_np.nbytes)
 
     def gpuMainUpdate(frame # type: np.ndarray
                       ):
         in_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=frame)
 
-        prog.rgc(queue, (requestSize[1],requestSize[0],3), None, in_buf, out_buf)
+        time32 = (time.time()*1000)%(2**32)
+        prog.xxhash_test(queue, (requestSize[1],requestSize[0]), None, in_buf, np.uint32(time32), out_buf)
 
         cl.enqueue_copy(queue, out_np, out_buf).wait()
 
@@ -75,12 +78,13 @@ def runRGC(
 
     allCallbacks.append(gpuMainUpdate)
 
-def DisplayRGC(cam):
+def DisplayRNG(cam,
+               requestSize=(1280, 720),  # type: Tuple[int, int]
+               ):
     from cv_pubsubs.cv_window_sub import frameDict, cv_win_sub
 
-    runRGC()
+    runRNG(requestSize)
 
-    cam = 0
 
     def camHandler(frame, camId):
         frameDict[str(camId) + "Frame"] = frame
@@ -91,8 +95,10 @@ def DisplayRGC(cam):
                inputVidGlobalNames=[str(cam)+'Frame'],
                callbacks=allCallbacks)
 
+
+
     return t
 
 if __name__ == '__main__':
-    t = DisplayRGC(0)
+    t = DisplayRNG(1, (1280,720))
     t.join()

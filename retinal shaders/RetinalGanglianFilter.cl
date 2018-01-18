@@ -10,6 +10,7 @@ __constant int colors = {};
 __constant uchar edge_brightness = {};
 
 #define gindex3( p ) p.x*width*colors+p.y*colors+p.z
+#define gindex2( p ) p.x*width+p.y
 
 uchar guardGetColor(
     int3 pos,
@@ -135,24 +136,85 @@ uint get_sparse_surround_square_avg(
 // todo: pass in random seed and use it w/ global values to determine radius for current pixel
 __kernel void rgc(
     const __global uchar* rgb_in,
-    const uint seed,
-    __global uchar* rgc_out)
+    const uint seed
+
+#ifdef RELATIVE_COLOR_FILTER
+    ,__global uchar* relative_color_out
+#endif
+
+#ifdef EDGE_FILTER
+    ,__global uchar* edge_out
+#endif
+
+#ifdef AVG_COLOR
+    ,__global uchar* avg_color_out
+#endif
+
+    )
+
 {{
     int3 coord = (int3)(get_global_id(0), get_global_id(1), get_global_id(2));
 
+#ifdef EDGE_FILTER
+    int2 outcoord = (int2)(get_global_id(0), get_global_id(1));
+#endif
+
     uchar c = guardGetColor(coord, rgb_in, edge_brightness);
-    int csq1 = get_sparse_surround_square_avg(coord, 16, 8, seed, rgb_in, c);//this one seems most useful for color
-    //int csq2 = get_sparse_surround_square_avg(coord, 16, 8, seed, rgb_in);//larger resolutions
-    //int csq2 = get_some_surround_square_avg(coord, 16, 8, rgb_in);
-    //int csq3 = get_some_surround_square_avg(coord, 3, 2, rgb_in);
-    //int csq2 = get_some_surround_square_avg(coord, 2, 1, rgb_in);
-    //int csq1 = get_sparse_surround_square_avg(coord, 8, 4, seed, rgb_in);
+#ifdef EDGE_FILTER
+    /*int csq3 = get_some_surround_square_avg(coord, 4, 2, rgb_in, c);
+    int csq2 = get_some_surround_square_avg(coord, 2, 1, rgb_in, c);
+    int csq1 = get_some_surround_square_avg(coord, 1, 1, rgb_in, c);*/
+    int csq1 = get_some_surround_square_avg(coord, 1, 1, rgb_in, c);
+    int csq3 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
+#endif
 
-    int diff = max((int)(c)-csq1,(int)0) /*+ max(csq1-csq2, (int)0)/2 /*+ max(csq2-csq3, (int)0)/2 /*+ max(csq3-csq4, (int)0)/4*/;
-    int diff2 = max(csq1-(int)(c),(int)0) /*+ max(csq2-csq1, (int)0)/2 /*+ max(csq3-csq2, (int)0)/2/*+ max(csq4-csq3, (int)0)/4*/;
+#ifdef RELATIVE_COLOR_FILTER
+    int csq4 = get_sparse_surround_square_avg(coord, 16, 8, seed, rgb_in, c);//this one seems most useful for color
+#endif
 
+#ifdef EDGE_FILTER
+    int edgeDiff = max((int)(c)-csq3,(int)0)/2 + max((int)(c)-csq1, (int)0)/2 /*+ max(csq2-csq3, (int)0)/16*/;
+    int edgeDiff2 = max(csq3-(int)(c),(int)0)/2 + max(csq1-(int)(c), (int)0)/2 /*+ max(csq3-csq2, (int)0)/16*/;
+#endif
 
-    rgc_out[gindex3( coord )] = min(max((int)(127+(diff-diff2)*4), (int)0), 255);
+#ifdef RELATIVE_COLOR_FILTER
+    int colorDiff = max((int)(c)-csq4,(int)0) /*+ max(csq1-csq2, (int)0)/2 /*+ max(csq2-csq3, (int)0)/2 /*+ max(csq3-csq4, (int)0)/4*/;
+    int colorDiff2 = max(csq4-(int)(c),(int)0) /*+ max(csq2-csq1, (int)0)/2 /*+ max(csq3-csq2, (int)0)/2/*+ max(csq4-csq3, (int)0)/4*/;
 
+    relative_color_out[gindex3( coord )]
+    =min(max((int)(127+((colorDiff-colorDiff2)*2
+#ifdef AVG_COLOR
+    + ((int)(c)-avg_color_out[coord.z])/2))
+#endif
+    , (int)0), 255);
+#endif
+
+#ifdef EDGE_FILTER
+    if(get_global_id(2)==0){{
+        edge_out[gindex2( outcoord )] = 127;
+    }}
+    edge_out[gindex2( outcoord )]
+    =min(
+        max(
+            (
+            (int)(edge_out[gindex2( outcoord )])+(edgeDiff-edgeDiff2)*4
+            ),
+             0
+            ),
+         255
+         );
+#endif
+
+#ifdef AVG_COLOR
+    //Pro tip: don't reset this to 127. It will average over time.
+    uint id[3];id[0]=coord.x;id[1]=coord.y;id[2]=coord.z;
+    if((uint_xxhash32(id, 3, seed)&2097151)== 0){{
+        if(c > avg_color_out[coord.z]){{
+            avg_color_out[coord.z]=min(max((int)(avg_color_out[coord.z]+1), (int)0), 255);;
+        }}else{{
+            avg_color_out[coord.z]=min(max((int)(avg_color_out[coord.z]-1), (int)0), 255);;;
+        }}
+    }}
+#endif
 
 }}
