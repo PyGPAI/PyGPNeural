@@ -16,7 +16,7 @@ if False:
     return shader_text"""
 
 my_dir = os.path.dirname(os.path.abspath(__file__))
-
+shader_dir = my_dir + os.sep + 'shaders'
 
 def get_all_cl_gpus():
     gpu_list = []
@@ -39,7 +39,7 @@ def compile_rng(
 ):
     colors = 3
     if shader_file is None:
-        shader_file = my_dir + os.sep + 'retinal shaders' + os.sep + 'rng.cl'
+        shader_file = my_dir + os.sep + 'shaders' + os.sep + 'rng.cl'
     cl_str = read_cl_file(shader_file).format(request_size[0], request_size[1], colors)
 
     if gpu is None:

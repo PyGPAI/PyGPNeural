@@ -1,7 +1,8 @@
 
 #git remote add pygp_util https://github.com/SimLeek/PyGPUtil.git
 #git remote add cv-pubsubs https://github.com/SimLeek/cv_pubsubs.git
-git subtree push --prefix=pglsl_cpu pglsl-cpu master
+# after commit:
+git subtree push --prefix=pygp_util pygp_util master
 git subtree push --prefix=cv_pubsubs cv-pubsubs master
 
-git subtree add --prefix=pygp_util pygp_util master
+#git subtree add --prefix=pygp_util pygp_util master

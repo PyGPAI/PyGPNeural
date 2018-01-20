@@ -11,6 +11,7 @@ my_dir = os.path.dirname(os.path.abspath(__file__))
 if False:
     from typing import Tuple
 
+from pygp_util import shader_dir as util_shaders
 
 def get_all_cl_gpus():
     gpu_list = []
@@ -48,7 +49,7 @@ def compile_rgc(
     queue = cl.CommandQueue(ctx)
     mf = cl.mem_flags
 
-    options = [r"-I", my_dir + os.sep + 'retinal shaders']
+    options = [r"-I", util_shaders]
     if relative_color_filter:
         options.extend(["-D", "RELATIVE_COLOR_FILTER"])
         if combine_time_and_color:
@@ -151,6 +152,6 @@ def display_rgc(cam,
 #todo: color test: test frequency of colors is full spectrum, avg is grey
 if __name__ == '__main__':
     t = display_rgc(cam=0,
-                    request_size=(176, 144),
-                    fps_limit=9.99)
+                    request_size=(1280, 720),
+                    fps_limit=60)
     t.join()
