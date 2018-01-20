@@ -1,14 +1,14 @@
 import os
 import time
-
 import numpy as np
 import pyopencl as cl
 
-from cv_pubsubs import cv_webcam_pub
+import cv_pubsubs.cv_webcam_pub as w
 
+
+os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
 
 my_dir = os.path.dirname(os.path.abspath(__file__))
-
 
 if False:
     from typing import Tuple
@@ -31,7 +31,8 @@ def read_cl_file(shader_file):
 def compile_rgc(
         relative_color_filter=True,
         edge_filter=True,
-        average_color_filter=True,
+        time_filter=True,
+        combine_time_and_color=False,
         shader_file=None,
         request_size=(1280, 720),  # type: Tuple[int, int]
         gpu=None
@@ -52,10 +53,12 @@ def compile_rgc(
     options = [r"-I", my_dir + os.sep + 'retinal shaders']
     if relative_color_filter:
         options.extend(["-D", "RELATIVE_COLOR_FILTER"])
+        if combine_time_and_color:
+            options.extend(["-D", "RELATIVE_TIME_FILTER"])
     if edge_filter:
         options.extend(["-D", "EDGE_FILTER"])
-    if average_color_filter:
-        options.extend(["-D", "AVG_COLOR"])
+    if time_filter:
+        options.extend(["-D", "TIME_FILTER"])
 
     prog = cl.Program(ctx, cl_str).build(options=options)
 
@@ -69,26 +72,28 @@ def run_rgc(
         request_size=(1280, 720),  # type: Tuple[int, int]
         relative_color_filter=True,
         edge_filter=True,
-        average_color_filter=True
+        time_filter=True,
+        combine_time_and_color=True
 ):
     global allCallbacks
 
     prog, queue, mf, ctx = compile_rgc(
         relative_color_filter=relative_color_filter,
         edge_filter=edge_filter,
-        average_color_filter=average_color_filter,
+        time_filter=time_filter,
+        combine_time_and_color=combine_time_and_color,
         request_size=request_size)
 
     if relative_color_filter:
-        color_np = np.zeros((request_size[1], request_size[0], 3), dtype=np.uint8)
+        color_np = np.full((request_size[1], request_size[0], 3), 127, dtype=np.uint8)
         color_buf = cl.Buffer(ctx, mf.WRITE_ONLY, color_np.nbytes)
 
     if edge_filter:
-        edge_np = np.zeros((request_size[1], request_size[0], 1), dtype=np.uint8)
+        edge_np = np.full((request_size[1], request_size[0], 1), 127, dtype=np.uint8)
         edge_buf = cl.Buffer(ctx, mf.WRITE_ONLY, edge_np.nbytes)
 
-    if average_color_filter:
-        avg_np = np.zeros((1, 1, 3,), dtype=np.uint8)
+    if time_filter:
+        avg_np = np.full((request_size[1], request_size[0], 3), 127, dtype=np.uint8)
         avg_buf = cl.Buffer(ctx, mf.WRITE_ONLY, avg_np.nbytes)
 
     def gpu_main_update(frame  # type: np.ndarray
@@ -103,7 +108,7 @@ def run_rgc(
             buffs.append(color_buf)
         if edge_filter:
             buffs.append(edge_buf)
-        if average_color_filter:
+        if time_filter:
             buffs.append(avg_buf)
         args.extend(buffs)
 
@@ -114,35 +119,32 @@ def run_rgc(
             arrays.append(color_np)
         if edge_filter:
             arrays.append(edge_np)
-        if average_color_filter:
+        if time_filter:
             arrays.append(avg_np)
 
         for b in range(len(buffs)):
             cl.enqueue_copy(queue, arrays[b], buffs[b]).wait()
 
-        if average_color_filter:
-            print(avg_np)
-
         return arrays
 
     allCallbacks.append(gpu_main_update)
 
-
+import cv_pubsubs as cvp
 def display_rgc(cam,
                 request_size=(1280, 720),  # type: Tuple[int, int]
                 ):
-    from cv_pubsubs.cv_window_sub import frameDict, cv_win_sub
-
     run_rgc(request_size)
 
     def cam_handler(frame, cam_id):
-        frameDict[str(cam_id) + "Frame"] = frame
+        cvp.frameDict[str(cam_id) + "Frame"] = frame
 
-    cam_thread = cv_webcam_pub.init_cv_cam_pub_handler(cam, cam_handler)
+    cam_thread = cvp.frame_handler_thread(cam, cam_handler)
 
-    cv_win_sub(names=[str(cam)],
-               inputVidGlobalNames=[str(cam) + 'Frame'],
-               callbacks=allCallbacks)
+    cvp.sub_win_loop(names=['RGC Relative Color Filter',
+                            'RGC Edge Filter',
+                            'RGC Time Averaging Filter'],
+                 input_vid_global_names=[str(cam) + 'Frame'],
+                 callbacks=allCallbacks)
 
     return cam_thread
 

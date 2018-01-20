@@ -85,7 +85,7 @@ def run_rng(
 def display_rng(cam,
                 request_size=(1280, 720),  # type: Tuple[int, int]
                 ):
-    from cv_pubsubs.cv_window_sub import frameDict, cv_win_sub
+    from cv_pubsubs.sub_win import frameDict, sub_win_loop
 
     run_rng(request_size)
 
@@ -94,9 +94,9 @@ def display_rng(cam,
 
     cam_thread = cv_webcam_pub.init_cv_cam_pub_handler(cam, cam_handler)
 
-    cv_win_sub(names=[str(cam)],
-               inputVidGlobalNames=[str(cam) + 'Frame'],
-               callbacks=allCallbacks)
+    sub_win_loop(names=[str(cam)],
+                 input_vid_global_names=[str(cam) + 'Frame'],
+                 callbacks=allCallbacks)
 
     return cam_thread
 
