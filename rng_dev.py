@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pyopencl as cl
 
-from cv_pubsubs import cv_webcam_pub
+import cv_pubsubs as cvp
 import time
 
 if False:
@@ -49,18 +49,21 @@ def compile_rng(
     ctx = cl.Context(gpu)
     queue = cl.CommandQueue(ctx)
     mf = cl.mem_flags
-    prog = cl.Program(ctx, cl_str).build()
+
+    options = [r"-D", 'TESTING']
+    options.extend(["-D", "TEST_NORMAL"])
+
+    prog = cl.Program(ctx, cl_str).build(options=options)
 
     return prog, queue, mf, ctx
 
 
-allCallbacks = []
 
 
 def run_rng(
         request_size=(1280, 720),  # type: Tuple[int, int]
 ):
-    global allCallbacks
+    global rgc_callbacks
 
     prog, queue, mf, ctx = compile_rng(
         request_size=request_size)
@@ -77,30 +80,28 @@ def run_rng(
 
         cl.enqueue_copy(queue, out_np, out_buf).wait()
 
-        return out_np
+        return (out_np,)
 
-    allCallbacks.append(gpu_main_update)
+    return gpu_main_update
 
 
 def display_rng(cam,
                 request_size=(1280, 720),  # type: Tuple[int, int]
+                fps_limit=60  # type: float
                 ):
-    from cv_pubsubs.sub_win import frameDict, sub_win_loop
-
-    run_rng(request_size)
-
     def cam_handler(frame, cam_id):
-        frameDict[str(cam_id) + "Frame"] = frame
+        cvp.frameDict[str(cam_id) + "Frame"] = frame
 
-    cam_thread = cv_webcam_pub.init_cv_cam_pub_handler(cam, cam_handler)
+    cam_thread = cvp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit)
 
-    sub_win_loop(names=[str(cam)],
+    cvp.sub_win_loop(names=['Fast Random Number Generator'],
+                     input_cams=[cam],
                  input_vid_global_names=[str(cam) + 'Frame'],
-                 callbacks=allCallbacks)
+                 callbacks=[run_rng(request_size)])
 
     return cam_thread
 
 
 if __name__ == '__main__':
-    t = display_rng(1, (1280, 720))
+    t = display_rng(0, (1280, 720))
     t.join()

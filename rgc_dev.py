@@ -2,9 +2,7 @@ import os
 import time
 import numpy as np
 import pyopencl as cl
-
-import cv_pubsubs.cv_webcam_pub as w
-
+import cv_pubsubs as cvp
 
 os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
 
@@ -65,24 +63,24 @@ def compile_rgc(
     return prog, queue, mf, ctx
 
 
-allCallbacks = []
 
-
-def run_rgc(
+def rgc_callback(
         request_size=(1280, 720),  # type: Tuple[int, int]
         relative_color_filter=True,
         edge_filter=True,
         time_filter=True,
-        combine_time_and_color=True
+        combine_time_and_color=False,
+        gpu=None
 ):
-    global allCallbacks
 
     prog, queue, mf, ctx = compile_rgc(
         relative_color_filter=relative_color_filter,
         edge_filter=edge_filter,
         time_filter=time_filter,
         combine_time_and_color=combine_time_and_color,
-        request_size=request_size)
+        request_size=request_size,
+        gpu=gpu
+    )
 
     if relative_color_filter:
         color_np = np.full((request_size[1], request_size[0], 3), 127, dtype=np.uint8)
@@ -127,28 +125,32 @@ def run_rgc(
 
         return arrays
 
-    allCallbacks.append(gpu_main_update)
+    return gpu_main_update
 
-import cv_pubsubs as cvp
 def display_rgc(cam,
                 request_size=(1280, 720),  # type: Tuple[int, int]
+                fps_limit=60  # type: float
                 ):
-    run_rgc(request_size)
-
     def cam_handler(frame, cam_id):
         cvp.frameDict[str(cam_id) + "Frame"] = frame
 
-    cam_thread = cvp.frame_handler_thread(cam, cam_handler)
+    cam_thread = cvp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit)
 
     cvp.sub_win_loop(names=['RGC Relative Color Filter',
                             'RGC Edge Filter',
                             'RGC Time Averaging Filter'],
-                 input_vid_global_names=[str(cam) + 'Frame'],
-                 callbacks=allCallbacks)
+                     input_cams=[cam],
+                     input_vid_global_names=[str(cam) + 'Frame'],
+                     callbacks=[rgc_callback(request_size)])
 
     return cam_thread
 
 
+#todo: avg time test: check single pixel changes over time, but slowly
+#todo: edge test: check avg color grey, min max black and white
+#todo: color test: test frequency of colors is full spectrum, avg is grey
 if __name__ == '__main__':
-    t = display_rgc(0, (1280, 720))
+    t = display_rgc(cam=0,
+                    request_size=(176, 144),
+                    fps_limit=9.99)
     t.join()
