@@ -1,3 +1,4 @@
+pubsub
 cv2
 pyopencl
 numpy

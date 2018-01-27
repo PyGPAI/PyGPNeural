@@ -90,7 +90,7 @@ def display_rng(cam,
                 fps_limit=60  # type: float
                 ):
     def cam_handler(frame, cam_id):
-        cvp.frameDict[str(cam_id) + "Frame"] = frame
+        cvp.frame_dict[str(cam_id) + "Frame"] = frame
 
     cam_thread = cvp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit)
 

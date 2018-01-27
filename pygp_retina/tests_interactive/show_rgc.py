@@ -6,7 +6,7 @@ def display_rgc(cam,
                 fps_limit=60  # type: float
                 ):
     def cam_handler(frame, cam_id):
-        cvp.frameDict[str(cam_id) + "Frame"] = frame
+        cvp.frame_dict[str(cam_id) + "Frame"] = frame
 
     cam_thread = cvp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit)
 
@@ -20,7 +20,7 @@ def display_rgc(cam,
                                              relative_color_filter=True,
                                              edge_filter = True,
                                              time_filter = True,
-                                             combine_time_and_color = False,
+                                             combine_time_and_color = True,
                                              gpu = 1
     )])
 
