@@ -14,13 +14,13 @@ The PyGPRetina subtree preforms approximately the same transformations the RGC c
 
 Here, we can see the edge detector succumbing to the checkerboard illusion. Despite that connector being the same color, it says it's brighter than its surroundings when outside of the shadow, and darker than its surroundings when inside the shadow.
 
-![Image of computer succumbing to the checkerboard illusion.](https://thumbs.gfycat.com/MerryVibrantBasilisk-size_restricted.gif)
+[![Image of computer succumbing to the checkerboard illusion.](https://thumbs.gfycat.com/MerryVibrantBasilisk-size_restricted.gif)](https://gfycat.com/MerryVibrantBasilisk)
 
 #### Pac Man Illusion
 
 Here, the time averaging filter is used in addition to the relative color filter so that the pac man filter works just like it would with any human.
 
-![Image of computer succumbing to the pac man illusion.](https://thumbs.gfycat.com/WanWastefulBarnswallow-size_restricted.gif)
+[![Image of computer succumbing to the pac man illusion.](https://thumbs.gfycat.com/WanWastefulBarnswallow-size_restricted.gif)](https://gfycat.com/WanWastefulBarnswallow)
 
 The feed of the 'burned in' image from staring at the screen for so long is next:
 
