@@ -12,9 +12,16 @@ def display_rgc(cam,
 
     cvp.sub_win_loop(names=['RGC Relative Color Filter',
                             'RGC Edge Filter',
-                            'RGC Time Averaging Filter'],
+                            'RGC Time Averaging Filter'
+                            ],
                      input_cams=[cam],
                      input_vid_global_names=[str(cam) + 'Frame'],
-                     callbacks=[rgc_callback(request_size)])
+                     callbacks=[rgc_callback(request_size,
+                                             relative_color_filter=True,
+                                             edge_filter = True,
+                                             time_filter = True,
+                                             combine_time_and_color = False,
+                                             gpu = 1
+    )])
 
     return cam_thread

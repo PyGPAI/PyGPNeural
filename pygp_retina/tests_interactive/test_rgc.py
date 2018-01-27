@@ -9,6 +9,6 @@ from .show_rgc import display_rgc
 class TestDisplay(ut.TestCase):
     def test_display(self):
         t = display_rgc(cam=0,
-                        request_size=(1280, 720),
+                        request_size=(640, 480),
                         fps_limit=60)
         t.join()
