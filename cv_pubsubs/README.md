@@ -1,1 +1,0 @@
-A  threaded PubSub OpenCV interface. Webcam and video feeds to multiple windows is supported.
