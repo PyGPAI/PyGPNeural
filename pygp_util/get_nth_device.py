@@ -1,6 +1,7 @@
 from .get_all_cl_devices import get_all_cl_gpus, get_all_cl_cpus
 
-from typing import Optional
+if False:
+    from typing import Optional
 
 def get_nth_gpu(n  # type: Optional[int]
                 ):

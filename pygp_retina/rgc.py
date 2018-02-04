@@ -10,7 +10,7 @@ if False:
     from typing import Tuple
 
 
-def rgc_program(*,
+def rgc_program(
                 relative_color_filter=True,
                 edge_filter=True,
                 time_filter=True,
@@ -43,7 +43,7 @@ def rgc_callback(
         request_size=(1280, 720),  # type: Tuple[int, int]
         relative_color_filter=True,
         edge_filter=True,
-        time_filter=True,
+        time_filter=False,
         combine_time_and_color=False,
         gpu=None
 ):

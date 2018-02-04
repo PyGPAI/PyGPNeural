@@ -16,7 +16,7 @@ uchar guardGetColor(
     uchar rgb_default
 ){{
     if (pos.x<0 || pos.y<0 || pos.x>height || pos.y>width){{
-        return edge_brightness;
+        return rgb_default;
     }}
     else{{
         return (rgb_in[gindex3( pos )]);
@@ -102,13 +102,12 @@ uint get_sparse_surround_square_avg(
     uint upos[3];
     upos[0] = pos.x ;upos[1] = pos.y; upos[2] = pos.z;
 
-    uint xxhash = uint_xxhash32(upos, 3, seed);
 
     float normx = fabs(normal(uint_xxhash32(upos, 3, seed), 0, rad));
     float normy = fabs(normal(uint_xxhash32(upos, 3, seed+1), 0, rad));
-    float norms = fabs(normal(uint_xxhash32(upos, 3, seed+2), skip, skip/4));
+    float norms = fabs(normal(uint_xxhash32(upos, 3, seed+2), skip, skip>>2));
 
-    for(int i=0; i<2*rad+1; i+=skip){{
+    for(int i=0; i<(rad<<1)+1; i+=skip){{
         int3 top = pos+(int3)(i-normx,-normy,0);
         int3 bot = pos+(int3)(i-normx,normy, 0);
 
@@ -158,28 +157,30 @@ __kernel void rgc(
 
     uchar c = guardGetColor(coord, rgb_in, edge_brightness);
 #ifdef EDGE_FILTER
-    int csq1 = get_some_surround_square_avg(coord, 1, 1, rgb_in, c);
+
     int csq3 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
 #endif
 
 #ifdef RELATIVE_COLOR_FILTER
-    int csq4 = get_sparse_surround_square_avg(coord, 16, 8, seed, rgb_in, c);
+    int csq1 = get_some_surround_square_avg(coord, 1, 1, rgb_in, c);
+    int csq4 = get_sparse_surround_square_avg(coord, 8, 4, seed, rgb_in, c);
+    #ifdef RELATIVE_TIME_FILTER
+    csq4 = (csq4 + get_sparse_surround_square_avg(coord, 8, 4, seed, avg_time_out, c)*2)/3;
+    #endif
 #endif
 
 #ifdef EDGE_FILTER
-    int edgeDiff  = max((int)(c)-csq3,(int)0)/2 + max((int)(c)-csq1, (int)0)/2;
-    int edgeDiff2 = max(csq3-(int)(c),(int)0)/2 + max(csq1-(int)(c), (int)0)/2;
+    int edgeDiff  = max((int)(c)-csq3,(int)0)/2 ;
+    int edgeDiff2 = max(csq3-(int)(c),(int)0)/2 ;
 #endif
 
 #ifdef RELATIVE_COLOR_FILTER
-    int colorDiff  = max((int)(c)-csq4,(int)0);
-    int colorDiff2 = max(csq4-(int)(c),(int)0);
+    int colorDiff  = max((int)(c)-csq4,(int)0)/2 + max((int)(c)-csq1, (int)0)/2;
+    int colorDiff2 = max(csq4-(int)(c),(int)0)/2 + max(csq1-(int)(c), (int)0)/2;
 
     relative_color_out[gindex3( coord )]
     =min(max((int)(127+((colorDiff-colorDiff2)*2
-#ifdef RELATIVE_TIME_FILTER
-    + ((int)(c)-avg_time_out[gindex3( coord )])/2
-#endif
+
 ))
     , (int)0), 255);
 #endif
@@ -202,12 +203,11 @@ __kernel void rgc(
 
 #ifdef TIME_FILTER
     uint id[3];id[0]=coord.x;id[1]=coord.y;id[2]=coord.z;
-    if((uint_xxhash32(id, 3, seed)&31)== 0){{
-        if(c > avg_time_out[gindex3( coord )]){{
+    if((uint_xxhash32(id, 3, seed)&1)== 0 && c > avg_time_out[gindex3( coord )]){{
             avg_time_out[gindex3( coord )]=min(max((int)(avg_time_out[gindex3( coord )]+1), (int)0), 255);;
-        }}else{{
-            avg_time_out[gindex3( coord )]=min(max((int)(avg_time_out[gindex3( coord )]-1), (int)0), 255);;;
-        }}
+    }}
+    else if((uint_xxhash32(id, 3, seed)&1)== 0 && c < avg_time_out[gindex3( coord )]){{
+        avg_time_out[gindex3( coord )]=min(max((int)(avg_time_out[gindex3( coord )]-1), (int)0), 255);;;
     }}
 #endif
 

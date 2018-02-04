@@ -1,5 +1,4 @@
 from distutils.core import setup
-
 setup(
     name= 'cv_pubsubs',
     packages = ['cv_pubsubs', 'cv_pubsubs.webcam_pub', 'cv_pubsubs.window_sub'],
