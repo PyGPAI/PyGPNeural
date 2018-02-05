@@ -255,22 +255,19 @@ int get_south_east_sparse(
     return ret;
 }}*/
 
-__kernel void blob(
+void rgb_to_blob(
+    int2 coord,
     const __global uchar* rgb_in,
     const uint seed,
     __global uchar* by_out,
     __global uchar* yb_out,
     __global uchar* bw_out,
     __global uchar* rg_out,
-    __global uchar* gr_out,
-    __global short* orient_out,
-    __global uchar* orient_dbg_out
+    __global uchar* gr_out
 ){{
-    int2 coord = (int2)(get_global_id(0), get_global_id(1));
-
     int3 c = guardGetColor(coord, rgb_in, edge_color);
 
-    int3 csq1 = get_surround_square_avg(coord, 1, rgb_in, c);
+    //int3 csq1 = get_surround_square_avg(coord, 1, rgb_in, c);
 
     int3 csq4 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
 
@@ -283,24 +280,33 @@ __kernel void blob(
     //int blueYellow  = (blueVYellow + yellowVBlue)/2;
 
     int c_grey = ( c.x + c.y + c.z ) /3;
-    int csq1_grey = ( csq1.x + csq1.y + csq1.z ) /3;
+    //int csq1_grey = ( csq1.x + csq1.y + csq1.z ) /3;
     int csq4_grey = ( csq4.x + csq4.y + csq4.z ) /3;
 
-    int blackWhite = (c_grey-csq4_grey + c_grey - csq1_grey)/2;
+    int blackWhite = (c_grey-csq4_grey);
 
     by_out[gindex2(coord)] = (uchar)(blueVYellow+127);
     yb_out[gindex2(coord)] = (uchar)(yellowVBlue+127);
     bw_out[gindex2(coord)] = (uchar)(blackWhite+127);
     rg_out[gindex2(coord)] = (uchar)(redVGreen+127);
     gr_out[gindex2(coord)] = (uchar)(greenVRed+127);
+}}
 
+void blob_to_orient(
+    int2 coord,
+    __global uchar* by_out,
+    __global uchar* yb_out,
+    __global uchar* bw_out,
+    __global uchar* rg_out,
+    __global uchar* gr_out,
+    __global short* orient_out
+){{
     orient_out[gindex2(coord)*4+0] = get_north(coord,by_out, by_out[gindex2(coord)])     ;
     orient_out[gindex2(coord)*4+1] = get_north_east(coord,by_out, by_out[gindex2(coord)]);
     orient_out[gindex2(coord)*4+2] = get_east(coord,by_out, by_out[gindex2(coord)])      ;
     orient_out[gindex2(coord)*4+3] = get_south_east(coord,by_out, by_out[gindex2(coord)]);
 
     short4 temp;
-
 
     temp.x = get_north(coord,yb_out, yb_out[gindex2(coord)])     ;
     temp.y = get_north_east(coord,yb_out, yb_out[gindex2(coord)]);
@@ -358,12 +364,55 @@ __kernel void blob(
     orient_out[gindex2(coord)*4+3] -= temp.y;
 
     for(int k=0; k<4;++k){{
-    if (orient_out[gindex2(coord)*4+k]<0){{
-    orient_out[gindex2(coord)*4+k]=0;
+        if (orient_out[gindex2(coord)*4+k]<0){{
+            orient_out[gindex2(coord)*4+k]=0;
+        }}
     }}
+}}
+
+
+
+void orient_to_orient_group(
+    int2 coord,
+    __global short* orient_out,
+    __global short* orient_group_out
+){{
+    orient_group_out[gindex2(coord)*4+0]= 0;
+    orient_group_out[gindex2(coord)*4+1]= 0;
+    orient_group_out[gindex2(coord)*4+2]= 0;
+    orient_group_out[gindex2(coord)*4+3]= 0;
+
+    int2 getCoord;
+    for(int i=-1;i<=1;++i){{
+        for(int j=-1;j<=1;++j){{
+            getCoord = coord+(int2)(i, j);
+            orient_group_out[gindex2(coord)*4+0] += orient_out[gindex2(getCoord)*4+0];
+            orient_group_out[gindex2(coord)*4+1] += orient_out[gindex2(getCoord)*4+1];
+            orient_group_out[gindex2(coord)*4+2] += orient_out[gindex2(getCoord)*4+2];
+            orient_group_out[gindex2(coord)*4+3] += orient_out[gindex2(getCoord)*4+3];
+
+            orient_group_out[gindex2(coord)*4+0] -= orient_out[gindex2(getCoord)*4+2];
+            orient_group_out[gindex2(coord)*4+1] -= orient_out[gindex2(getCoord)*4+3];
+            orient_group_out[gindex2(coord)*4+2] -= orient_out[gindex2(getCoord)*4+0];
+            orient_group_out[gindex2(coord)*4+3] -= orient_out[gindex2(getCoord)*4+1];
+        }}
     }}
 
-    //orientation of line, 0-252
+    for(int k=0; k<4;++k){{
+        if (orient_group_out[gindex2(coord)*4+k]<0){{
+            orient_group_out[gindex2(coord)*4+k]=0;
+        }}
+    }}
+}}
+
+
+
+void orient_dbg(
+    int2 coord,
+    __global short* orient_out,
+    __global uchar* orient_dbg_out
+){{
+        //orientation of line, 0-252
     orient_dbg_out[gindex2(coord)*3+0] = (
                                          0+
                                          orient_out[gindex2(coord)*4+1]*85+
@@ -385,12 +434,208 @@ __kernel void blob(
                                         abs(orient_out[gindex2(coord)*4+1]-orient_out[gindex2(coord)*4+2])+
                                         abs(orient_out[gindex2(coord)*4+2]-orient_out[gindex2(coord)*4+3])+
                                         abs(orient_out[gindex2(coord)*4+3]-orient_out[gindex2(coord)*4+0])
-                                        )/4;
+                                        )/20;
 
     //prominence of line
     orient_dbg_out[gindex2(coord)*3+2] = (orient_out[gindex2(coord)*4+0] +
                                           orient_out[gindex2(coord)*4+1] +
                                           orient_out[gindex2(coord)*4+2] +
-                                          orient_out[gindex2(coord)*4+3] )/4;
+                                          orient_out[gindex2(coord)*4+3] )/20;
+}}
+
+
+
+void end_stop_dbg(
+    int2 coord,
+    __global short* end_stop,
+    __global uchar* orient_dbg_out
+){{
+        //orientation of line, 0-252
+
+    short4 end = (short4)(
+        end_stop[gindex2(coord)*8+0]+end_stop[gindex2(coord)*8+4],
+        end_stop[gindex2(coord)*8+1]+end_stop[gindex2(coord)*8+5],
+        end_stop[gindex2(coord)*8+2]+end_stop[gindex2(coord)*8+6],
+        end_stop[gindex2(coord)*8+3]+end_stop[gindex2(coord)*8+7]
+    );
+
+    orient_dbg_out[gindex2(coord)*3+0] = (
+                                         0+
+                                         end.y*85+
+                                         end.z*170+
+                                         end.w*255
+                                        )
+                                                        /
+                                        (
+                                         end.x +
+                                         end.y +
+                                         end.z +
+                                         end.w
+                                         );
+
+    //std dev of line, approx
+    orient_dbg_out[gindex2(coord)*3+1] =
+                                        (
+                                        abs(end.x - end.y)+
+                                        abs(end.y - end.z)+
+                                        abs(end.z - end.w)+
+                                        abs(end.w - end.x)
+                                        );
+
+    //prominence of line
+    orient_dbg_out[gindex2(coord)*3+2] = (end.x +
+                                          end.y +
+                                          end.z +
+                                          end.w );
+}}
+
+__kernel void blob(
+    const __global uchar* rgb_in,
+    const uint seed,
+    __global uchar* by_out,
+    __global uchar* yb_out,
+    __global uchar* bw_out,
+    __global uchar* rg_out,
+    __global uchar* gr_out,
+    __global short* orient_out,
+    __global short* orient_group_out,
+    __global short* end_stop_out,
+    __global uchar* orient_dbg_out
+){{
+    int2 coord = (int2)(get_global_id(0), get_global_id(1));
+
+    rgb_to_blob(
+        coord,
+        rgb_in,
+        seed,
+        by_out,
+        yb_out,
+        bw_out,
+        rg_out,
+        gr_out
+    );
+
+
+    blob_to_orient(
+        coord,
+        by_out,
+        yb_out,
+        bw_out,
+        rg_out,
+        gr_out,
+        orient_out
+    );
+
+    orient_to_orient_group(coord, orient_out, orient_group_out);
+
+    end_stop_out[gindex2(coord)*8+0]= 0;
+    end_stop_out[gindex2(coord)*8+1]= 0;
+    end_stop_out[gindex2(coord)*8+2]= 0;
+    end_stop_out[gindex2(coord)*8+3]= 0;
+    end_stop_out[gindex2(coord)*8+4]= 0;
+    end_stop_out[gindex2(coord)*8+5]= 0;
+    end_stop_out[gindex2(coord)*8+6]= 0;
+    end_stop_out[gindex2(coord)*8+7]= 0;
+
+    int2 getCoord;
+    for(int i=0;i<=0;++i){{
+        getCoord = coord+(int2)(i, 0);
+        end_stop_out[gindex2(coord)*8+0] -= orient_out[gindex2(getCoord)*4+2]>>2;
+        end_stop_out[gindex2(coord)*8+0] += orient_out[gindex2(getCoord)*4+0]>>2;
+
+        getCoord = coord+(int2)(i, -i);
+        end_stop_out[gindex2(coord)*8+1] -= orient_out[gindex2(getCoord)*4+3]>>2;
+        end_stop_out[gindex2(coord)*8+1] += orient_out[gindex2(getCoord)*4+1]>>2;
+
+        getCoord = coord+(int2)(0, i);
+        end_stop_out[gindex2(coord)*8+2] -= orient_out[gindex2(getCoord)*4+0]>>2;
+        end_stop_out[gindex2(coord)*8+2] += orient_out[gindex2(getCoord)*4+2]>>2;
+
+        getCoord = coord+(int2)(i, i);
+        end_stop_out[gindex2(coord)*8+3] -= orient_out[gindex2(getCoord)*4+1]>>2;
+        end_stop_out[gindex2(coord)*8+3] += orient_out[gindex2(getCoord)*4+3]>>2;
+    }}
+    for(int i=-3;i<=-1;++i){{
+        getCoord = coord-(int2)(i, 0);
+        end_stop_out[gindex2(coord)*8+4] -=  (orient_out[gindex2(getCoord)*4+0]>>2);
+        //end_stop_out[gindex2(coord)*8+4] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+2]>>2), (short)(255));
+
+        getCoord = coord-(int2)(i, -i);
+        end_stop_out[gindex2(coord)*8+5] -=  (orient_out[gindex2(getCoord)*4+1]>>2);
+        //end_stop_out[gindex2(coord)*8+5] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+3]>>2), (short)(255));
+
+        getCoord = coord-(int2)(0, i);
+        end_stop_out[gindex2(coord)*8+6] -=  (orient_out[gindex2(getCoord)*4+2]>>2);
+        //end_stop_out[gindex2(coord)*8+6] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+0]>>2), (short)(255));
+
+        getCoord = coord-(int2)(i, i);
+        end_stop_out[gindex2(coord)*8+7] -= (orient_out[gindex2(getCoord)*4+3]>>2);
+        //end_stop_out[gindex2(coord)*8+7] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+1]>>2), (short)(255));
+    }}
+
+    for(int i=0;i<=0;++i){{
+        getCoord = coord-(int2)(i, 0);
+        end_stop_out[gindex2(coord)*8+4] -= orient_out[gindex2(getCoord)*4+2]>>2;
+        end_stop_out[gindex2(coord)*8+4] += orient_out[gindex2(getCoord)*4+0]>>2;
+
+        getCoord = coord-(int2)(i, -i);
+        end_stop_out[gindex2(coord)*8+5] -= orient_out[gindex2(getCoord)*4+3]>>2;
+        end_stop_out[gindex2(coord)*8+5] += orient_out[gindex2(getCoord)*4+1]>>2;
+
+        getCoord = coord-(int2)(0, i);
+        end_stop_out[gindex2(coord)*8+6] -= orient_out[gindex2(getCoord)*4+0]>>2;
+        end_stop_out[gindex2(coord)*8+6] += orient_out[gindex2(getCoord)*4+2]>>2;
+
+        getCoord = coord-(int2)(i, i);
+        end_stop_out[gindex2(coord)*8+7] -= orient_out[gindex2(getCoord)*4+1]>>2;
+        end_stop_out[gindex2(coord)*8+7] += orient_out[gindex2(getCoord)*4+3]>>2;
+    }}
+
+    for(int i=1;i<=3;++i){{
+        getCoord = coord+(int2)(i, 0);
+        end_stop_out[gindex2(coord)*8+0] -= (orient_out[gindex2(getCoord)*4+0]>>2);
+        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+2]>>2), (short)(255));
+
+        getCoord = coord+(int2)(i, -i);
+        end_stop_out[gindex2(coord)*8+1] -= (orient_out[gindex2(getCoord)*4+1]>>2);
+        //end_stop_out[gindex2(coord)*8+1] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+3]>>2), (short)(255));
+
+        getCoord = coord+(int2)(0, i);
+        end_stop_out[gindex2(coord)*8+2] -= (orient_out[gindex2(getCoord)*4+2]>>2);
+        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+0]>>2), (short)(255));
+
+        getCoord = coord+(int2)(i, i);
+        end_stop_out[gindex2(coord)*8+3] -= (orient_out[gindex2(getCoord)*4+3]>>2);
+        //end_stop_out[gindex2(coord)*8+3] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+1]>>2), (short)(255));
+
+    }}
+
+    //add temp first
+
+    /*short end_stop_temp[8];
+    end_stop_temp[0] = end_stop_out[gindex2(coord)*8+0];end_stop_temp[1] = end_stop_out[gindex2(coord)*8+1];
+    end_stop_temp[2] = end_stop_out[gindex2(coord)*8+2];end_stop_temp[3] = end_stop_out[gindex2(coord)*8+3];
+    end_stop_temp[4] = end_stop_out[gindex2(coord)*8+4];end_stop_temp[5] = end_stop_out[gindex2(coord)*8+5];
+    end_stop_temp[6] = end_stop_out[gindex2(coord)*8+6];end_stop_temp[7] = end_stop_out[gindex2(coord)*8+7];
+
+
+    for(int k=0; k<8;++k){{
+        for(int j=1; j<=3;++j){{
+            end_stop_out[gindex2(coord)*8+k] = max((short)(0), (short)(end_stop_out[gindex2(coord)*8+k] - (end_stop_temp[(k+j)%8])));
+            end_stop_out[gindex2(coord)*8+k] = max((short)(0), (short)(end_stop_out[gindex2(coord)*8+k] - (end_stop_temp[(k-j)%8])));
+        }}
+    }}*/
+
+    for(int k=0; k<8;++k){{
+        if (end_stop_out[gindex2(coord)*8+k]<0){{
+            end_stop_out[gindex2(coord)*8+k]=0;
+        }}
+    }}
+
+    end_stop_dbg(
+        coord,
+        end_stop_out,
+        orient_dbg_out
+    );
 
 }}

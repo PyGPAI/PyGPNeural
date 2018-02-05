@@ -40,7 +40,7 @@ def col_mask_callback(
                 x,y,w,h = bound_rect
                 cv2.rectangle(color, (x, y), (x + w, y + h), (255, 0, 0))
                 circ_center, circ_rad = cv2.minEnclosingCircle(c)
-                cent_x, cent_y = circ_centerh
+                cent_x, cent_y = circ_center
                 cv2.circle(color, (int(cent_x), int(cent_y)), int(circ_rad), (255, 255, 0))
                 hull = cv2.convexHull(c)
                 cv2.drawContours(color, [hull], 0, (0, 255, 255))
