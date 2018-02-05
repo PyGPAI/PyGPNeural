@@ -480,13 +480,13 @@ void end_stop_dbg(
                                         abs(end.y - end.z)+
                                         abs(end.z - end.w)+
                                         abs(end.w - end.x)
-                                        );
+                                        )/32;
 
     //prominence of line
     orient_dbg_out[gindex2(coord)*3+2] = (end.x +
                                           end.y +
                                           end.z +
-                                          end.w );
+                                          end.w )/32;
 }}
 
 __kernel void blob(
@@ -540,79 +540,79 @@ __kernel void blob(
     int2 getCoord;
     for(int i=0;i<=0;++i){{
         getCoord = coord+(int2)(i, 0);
-        end_stop_out[gindex2(coord)*8+0] -= orient_out[gindex2(getCoord)*4+2]>>2;
-        end_stop_out[gindex2(coord)*8+0] += orient_out[gindex2(getCoord)*4+0]>>2;
+        //end_stop_out[gindex2(coord)*8+0] -= orient_group_out[gindex2(getCoord)*4+2]>>2;
+        end_stop_out[gindex2(coord)*8+0] += orient_group_out[gindex2(getCoord)*4+0]>>2;
 
         getCoord = coord+(int2)(i, -i);
-        end_stop_out[gindex2(coord)*8+1] -= orient_out[gindex2(getCoord)*4+3]>>2;
-        end_stop_out[gindex2(coord)*8+1] += orient_out[gindex2(getCoord)*4+1]>>2;
+        //end_stop_out[gindex2(coord)*8+1] -= orient_group_out[gindex2(getCoord)*4+3]>>2;
+        end_stop_out[gindex2(coord)*8+1] += orient_group_out[gindex2(getCoord)*4+1]>>2;
 
         getCoord = coord+(int2)(0, i);
-        end_stop_out[gindex2(coord)*8+2] -= orient_out[gindex2(getCoord)*4+0]>>2;
-        end_stop_out[gindex2(coord)*8+2] += orient_out[gindex2(getCoord)*4+2]>>2;
+        //end_stop_out[gindex2(coord)*8+2] -= orient_group_out[gindex2(getCoord)*4+0]>>2;
+        end_stop_out[gindex2(coord)*8+2] += orient_group_out[gindex2(getCoord)*4+2]>>2;
 
         getCoord = coord+(int2)(i, i);
-        end_stop_out[gindex2(coord)*8+3] -= orient_out[gindex2(getCoord)*4+1]>>2;
-        end_stop_out[gindex2(coord)*8+3] += orient_out[gindex2(getCoord)*4+3]>>2;
+        //end_stop_out[gindex2(coord)*8+3] -= orient_group_out[gindex2(getCoord)*4+1]>>2;
+        end_stop_out[gindex2(coord)*8+3] += orient_group_out[gindex2(getCoord)*4+3]>>2;
     }}
-    for(int i=-3;i<=-1;++i){{
+    for(int i=-1;i<=-1;++i){{
         getCoord = coord-(int2)(i, 0);
-        end_stop_out[gindex2(coord)*8+4] -=  (orient_out[gindex2(getCoord)*4+0]>>2);
-        //end_stop_out[gindex2(coord)*8+4] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+2]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+4] -=  (orient_group_out[gindex2(getCoord)*4+0]>>2);
+        //end_stop_out[gindex2(coord)*8+4] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+2]>>2), (short)(255));
 
         getCoord = coord-(int2)(i, -i);
-        end_stop_out[gindex2(coord)*8+5] -=  (orient_out[gindex2(getCoord)*4+1]>>2);
-        //end_stop_out[gindex2(coord)*8+5] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+3]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+5] -=  (orient_group_out[gindex2(getCoord)*4+1]>>2);
+        //end_stop_out[gindex2(coord)*8+5] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+3]>>2), (short)(255));
 
         getCoord = coord-(int2)(0, i);
-        end_stop_out[gindex2(coord)*8+6] -=  (orient_out[gindex2(getCoord)*4+2]>>2);
-        //end_stop_out[gindex2(coord)*8+6] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+0]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+6] -=  (orient_group_out[gindex2(getCoord)*4+2]>>2);
+        //end_stop_out[gindex2(coord)*8+6] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+0]>>2), (short)(255));
 
         getCoord = coord-(int2)(i, i);
-        end_stop_out[gindex2(coord)*8+7] -= (orient_out[gindex2(getCoord)*4+3]>>2);
-        //end_stop_out[gindex2(coord)*8+7] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+1]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+7] -= (orient_group_out[gindex2(getCoord)*4+3]>>2);
+        //end_stop_out[gindex2(coord)*8+7] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+1]>>2), (short)(255));
     }}
 
     for(int i=0;i<=0;++i){{
         getCoord = coord-(int2)(i, 0);
-        end_stop_out[gindex2(coord)*8+4] -= orient_out[gindex2(getCoord)*4+2]>>2;
-        end_stop_out[gindex2(coord)*8+4] += orient_out[gindex2(getCoord)*4+0]>>2;
+        //end_stop_out[gindex2(coord)*8+4] -= orient_group_out[gindex2(getCoord)*4+2]>>2;
+        end_stop_out[gindex2(coord)*8+4] += orient_group_out[gindex2(getCoord)*4+0]>>2;
 
         getCoord = coord-(int2)(i, -i);
-        end_stop_out[gindex2(coord)*8+5] -= orient_out[gindex2(getCoord)*4+3]>>2;
-        end_stop_out[gindex2(coord)*8+5] += orient_out[gindex2(getCoord)*4+1]>>2;
+        //end_stop_out[gindex2(coord)*8+5] -= orient_group_out[gindex2(getCoord)*4+3]>>2;
+        end_stop_out[gindex2(coord)*8+5] += orient_group_out[gindex2(getCoord)*4+1]>>2;
 
         getCoord = coord-(int2)(0, i);
-        end_stop_out[gindex2(coord)*8+6] -= orient_out[gindex2(getCoord)*4+0]>>2;
-        end_stop_out[gindex2(coord)*8+6] += orient_out[gindex2(getCoord)*4+2]>>2;
+        //end_stop_out[gindex2(coord)*8+6] -= orient_group_out[gindex2(getCoord)*4+0]>>2;
+        end_stop_out[gindex2(coord)*8+6] += orient_group_out[gindex2(getCoord)*4+2]>>2;
 
         getCoord = coord-(int2)(i, i);
-        end_stop_out[gindex2(coord)*8+7] -= orient_out[gindex2(getCoord)*4+1]>>2;
-        end_stop_out[gindex2(coord)*8+7] += orient_out[gindex2(getCoord)*4+3]>>2;
+        //end_stop_out[gindex2(coord)*8+7] -= orient_group_out[gindex2(getCoord)*4+1]>>2;
+        end_stop_out[gindex2(coord)*8+7] += orient_group_out[gindex2(getCoord)*4+3]>>2;
     }}
 
-    for(int i=1;i<=3;++i){{
+    for(int i=1;i<=1;++i){{
         getCoord = coord+(int2)(i, 0);
-        end_stop_out[gindex2(coord)*8+0] -= (orient_out[gindex2(getCoord)*4+0]>>2);
-        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+2]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+0] -= (orient_group_out[gindex2(getCoord)*4+0]>>2);
+        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+2]>>2), (short)(255));
 
         getCoord = coord+(int2)(i, -i);
-        end_stop_out[gindex2(coord)*8+1] -= (orient_out[gindex2(getCoord)*4+1]>>2);
-        //end_stop_out[gindex2(coord)*8+1] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+3]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+1] -= (orient_group_out[gindex2(getCoord)*4+1]>>2);
+        //end_stop_out[gindex2(coord)*8+1] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+3]>>2), (short)(255));
 
         getCoord = coord+(int2)(0, i);
-        end_stop_out[gindex2(coord)*8+2] -= (orient_out[gindex2(getCoord)*4+2]>>2);
-        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+0]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+2] -= (orient_group_out[gindex2(getCoord)*4+2]>>2);
+        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+0]>>2), (short)(255));
 
         getCoord = coord+(int2)(i, i);
-        end_stop_out[gindex2(coord)*8+3] -= (orient_out[gindex2(getCoord)*4+3]>>2);
-        //end_stop_out[gindex2(coord)*8+3] -= 255 - min((short)(orient_out[gindex2(getCoord)*4+1]>>2), (short)(255));
+        end_stop_out[gindex2(coord)*8+3] -= (orient_group_out[gindex2(getCoord)*4+3]>>2);
+        //end_stop_out[gindex2(coord)*8+3] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+1]>>2), (short)(255));
 
     }}
 
     //add temp first
 
-    /*short end_stop_temp[8];
+    short end_stop_temp[8];
     end_stop_temp[0] = end_stop_out[gindex2(coord)*8+0];end_stop_temp[1] = end_stop_out[gindex2(coord)*8+1];
     end_stop_temp[2] = end_stop_out[gindex2(coord)*8+2];end_stop_temp[3] = end_stop_out[gindex2(coord)*8+3];
     end_stop_temp[4] = end_stop_out[gindex2(coord)*8+4];end_stop_temp[5] = end_stop_out[gindex2(coord)*8+5];
@@ -624,7 +624,7 @@ __kernel void blob(
             end_stop_out[gindex2(coord)*8+k] = max((short)(0), (short)(end_stop_out[gindex2(coord)*8+k] - (end_stop_temp[(k+j)%8])));
             end_stop_out[gindex2(coord)*8+k] = max((short)(0), (short)(end_stop_out[gindex2(coord)*8+k] - (end_stop_temp[(k-j)%8])));
         }}
-    }}*/
+    }}
 
     for(int k=0; k<8;++k){{
         if (end_stop_out[gindex2(coord)*8+k]<0){{
