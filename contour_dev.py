@@ -5,6 +5,9 @@ import numpy as np
 if False:
     from typing import Tuple
 
+
+# check every pixel for equilateral/right triangle
+
 def col_mask_callback(
         request_size=(1280, 720),  # type: Tuple[int, int]
         relative_color_filter=True,
