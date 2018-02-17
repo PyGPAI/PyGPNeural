@@ -25,8 +25,8 @@ def display_rgc(cam,
                      callbacks=[rgc_callback(request_size,
                                              relative_color_filter=True,
                                              edge_filter = True,
-                                             time_filter = False,
-                                             combine_time_and_color = False,
+                                             time_filter = True,
+                                             combine_time_and_color = True,
                                              gpu = 1
     )])
 
