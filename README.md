@@ -188,10 +188,10 @@ In the directory where you want this repository to show up, run:
     yes | activate pyneural &&\
     yes | conda install pip &&\
     yes | pip install pubsub &&\
-    yes | pip install opencv-python &&\
+    yes | conda install opencv-python &&\
     yes | conda install -c conda-forge pyopencl &&\
     yes | conda install numpy &&\
-    yes | conda install pytest &&\
+    yes | conda install pytest
 
     git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural &&\
     cd PyGPNeural
