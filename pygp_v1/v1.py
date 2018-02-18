@@ -2,7 +2,7 @@ import cv2
 import os
 import pyopencl as cl
 import pygp_util as pgpu
-from pygp_v1.shader_util import shader_dir as v1_shader_dir
+from .shader_util import shader_dir as v1_shader_dir
 import time
 
 import numpy as np
