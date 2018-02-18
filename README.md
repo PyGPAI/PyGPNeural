@@ -188,7 +188,7 @@ In the directory where you want this repository to show up, run:
     yes | activate pyneural &&\
     yes | conda install pip &&\
     yes | pip install pubsub &&\
-    yes | conda install opencv-python &&\
+    yes | conda install opencv &&\
     yes | conda install -c conda-forge pyopencl &&\
     yes | conda install numpy &&\
     yes | conda install pytest
