@@ -31,13 +31,7 @@ def col_mask_callback(
             nonlocal kp_store, orb, flann, edge_original
 
             edges = rgc_cb(frame)
-            #for e in range(len(edges)):
             edge = edges[2]
-
-            #cv2.blur(edge, (3,3), dst=edge)
-            #edge = cv2.cvtColor(edge, cv2.COLOR_BGR2GRAY)
-
-
 
             kp = orb.detect(edge, None) # type: List[Any]
             kp, des = orb.compute(edge, kp)
@@ -50,11 +44,6 @@ def col_mask_callback(
 
             # Need to draw only good matches, so create a mask
             matchesMask = [[0, 0] for _ in range(len(matches))]
-
-            '''for k in kp:
-                print(k.response)'''
-
-            contours = []
 
             edge = cv2.cvtColor(edge,cv2.COLOR_GRAY2BGR)
 

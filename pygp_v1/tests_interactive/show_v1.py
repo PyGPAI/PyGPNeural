@@ -14,7 +14,7 @@ def show_v1(cam,
         win.frame_dict[str(cam_id) + "Frame"] = frame
 
     cam_thread = camp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit,
-                                           high_speed=True)
+                                           high_speed=False)
 
     win.sub_win_loop(names=['orient_dbg_np','orient_ddbg_np','orient_dbg_np2','orient_dbg_n4p','orient_dbg_n5p',
                             ],

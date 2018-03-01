@@ -51,7 +51,6 @@ def pub_cam_loop(cam_id,  # type: Union[int, str]
         pubsub.publish("cvcams." + str(cam_id) + ".vid", (frame,))
         msg = listen_default(sub, block=False, empty='')
 
-        pass
     cam.release()
     return True
 
