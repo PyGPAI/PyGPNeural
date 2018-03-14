@@ -10,15 +10,15 @@ Currently still in development.
         2. [Pac Man Illusion](#pac-man-illusion)
 2. [Installation Instructions](#installation-instructions)
     1. [Windows](#installing-on-windows)
-        1. [Prerequisites](#prerequisites-windows)
-        2. [Recommendations](#recommendations-windows)
-        3. [Installing this Repository](#installing-this-repository-windows)
-        4. [Quick start](#quick-start-windows)
+        1. [Quick start](#quick-start-windows)
+        2. [Prerequisites](#prerequisites-windows)
+        3. [Recommendations](#recommendations-windows)
+        4. [Installing this Repository](#installing-this-repository-windows)
     2. [Linux](#installing-on-linux)
-        1. [Prerequisites](#prerequisites-linux)
-        2. [Recommendations](#recommendations-linux)
-        3. [Installing this Repository](#installing-this-repository-linux)
-        4. [Quick start](#quick-start-linux)
+        1. [Quick start](#quick-start-linux)
+        2. [Prerequisites](#prerequisites-linux)
+        3. [Recommendations](#recommendations-linux)
+        4. [Installing this Repository](#installing-this-repository-linux)
 
 # Showcase
 
@@ -49,6 +49,28 @@ It was weird. I would check back after a while and see a different image, but I 
 # Installation Instructions
 
 ## Installing on Windows
+
+### Quick start (Windows)
+
+1. Install [Git](https://git-scm.com/)
+2. Install [Anaconda with Python 3.6](https://www.anaconda.com/download/)
+3. Run these commands from the terminal:
+
+In the directory where you want this repository to show up, run:
+
+    conda create --name pyneural
+    activate pyneural
+    conda install pip
+    pip install pubsub
+    conda install opencv
+    conda install pyopencl
+    conda install numpy
+    conda install pytest
+
+    git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural
+    cd PyGPNeural`
+
+    pytest pygp_v1
 
 ### Prerequisites (Windows)
 
@@ -103,29 +125,28 @@ Simply run this from the top level directory:
 
 `pytest 'DESIRED SUB-REPOSITORY'`
 
-### Quick start (Windows)
+## Installing on Linux
 
-1. Install [Git](https://git-scm.com/)
-2. Install [Anaconda with Python 3.6](https://www.anaconda.com/download/)
-3. Run these commands from the terminal:
+### Quick start (Linux)
+
+1. Install [Anaconda with Python 3.6](https://www.anaconda.com/download/)
+2. Run these commands from the terminal:
 
 In the directory where you want this repository to show up, run:
 
-    conda create --name pyneural
-    activate pyneural
-    conda install pip
-    pip install pubsub
-    conda install opencv
-    conda install pyopencl
-    conda install numpy
-    conda install pytest
+    yes | conda create --name pyneural &&\
+    yes | activate pyneural &&\
+    yes | conda install pip &&\
+    yes | pip install pubsub &&\
+    yes | conda install --channel loopbio --channel conda-forge --channel pkgw-forge gtk2 ffmpeg gtk2-feature opencv &&\
+    yes | conda install -c conda-forge pyopencl &&\
+    yes | conda install numpy &&\
+    yes | conda install pytest
 
-    git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural
-    cd PyGPNeural`
+    git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural &&\
+    cd PyGPNeural
 
     pytest pygp_v1
-
-## Installing on Linux
 
 ### Prerequisites (Linux)
 
@@ -176,25 +197,3 @@ For everything else, you should open your terminal where you want the code, and 
 Simply run this from the top level directory:
 
 `pytest 'DESIRED SUB-REPOSITORY'`
-
-### Quick start (Linux)
-
-1. Install [Anaconda with Python 3.6](https://www.anaconda.com/download/)
-2. Run these commands from the terminal:
-
-In the directory where you want this repository to show up, run:
-
-    yes | conda create --name pyneural &&\
-    yes | activate pyneural &&\
-    yes | conda install pip &&\
-    yes | pip install pubsub &&\
-    yes | conda install --channel loopbio --channel conda-forge --channel pkgw-forge gtk2 ffmpeg gtk2-feature opencv &&\
-    yes | conda install -c conda-forge pyopencl &&\
-    yes | conda install numpy &&\
-    yes | conda install pytest
-
-    git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural &&\
-    cd PyGPNeural
-
-    pytest pygp_v1
-
