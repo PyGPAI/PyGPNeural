@@ -62,8 +62,8 @@ In the directory where you want this repository to show up, run:
     activate pyneural
     conda install pip
     pip install pubsub
-    conda install opencv
-    conda install pyopencl
+    conda install -c conda-forge opencv
+    conda install -c conda-forge pyopencl
     conda install numpy
     conda install pytest
 
