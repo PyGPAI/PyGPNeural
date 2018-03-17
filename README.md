@@ -157,7 +157,7 @@ To install this repository for development, first, you mast have the following t
 * Python. However, I recommend [Anaconda with Python 3.6](https://www.anaconda.com/download/), though you can also use 2.7 if you want, for now. If you need help, follow the [installation instructions on the Anaconda site](https://docs.anaconda.com/anaconda/install/linux).
 
 * OpenCL Driver.
-    * If you're getting `pyopencl.cffi_cl.LogicError: clGetPlatformIDs failed: <unknown error -1001>`, that means you don't have any OpenCL compatible devices, or that your drivers aren't updated.
+    * If you're getting `pyopencl.cffi_cl.LogicError: clGetPlatformIDs failed: <unknown error -1001>`, that means you don't have any OpenCL compatible devices, or that your drivers aren't updated. Try `sudo apt install mesa-opencl-icd`. If that fails, try `conda install pocl` for the CPU version, or see if you can find other drivers.
 
 Once that's installed, you'll want to create an environment which you'll be developing in, and switch to it. (The quotes aren't necessary as long as there aren't spaces in the name)
 
