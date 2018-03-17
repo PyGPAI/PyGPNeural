@@ -134,14 +134,14 @@ Simply run this from the top level directory:
 
 In the directory where you want this repository to show up, run:
 
-    yes | conda create --name pyneural &&\
-    yes | activate pyneural &&\
-    yes | conda install pip &&\
-    yes | pip install pubsub &&\
-    yes | conda install --channel loopbio --channel conda-forge --channel pkgw-forge gtk2 ffmpeg gtk2-feature opencv &&\
-    yes | conda install -c conda-forge pyopencl &&\
-    yes | conda install numpy &&\
-    yes | conda install pytest
+    conda create --name pyneural
+    conda activate pyneural
+    conda install pip
+    pip install pubsub
+    conda install --channel loopbio --channel conda-forge --channel pkgw-forge gtk2 ffmpeg gtk2-feature opencv
+    conda install -c conda-forge pyopencl
+    conda install numpy
+    conda install pytest
 
     git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural &&\
     cd PyGPNeural
@@ -155,6 +155,9 @@ To install this repository for development, first, you mast have the following t
 * Git, the repository system needed to download this repository: run `sudo apt install git`
 
 * Python. However, I recommend [Anaconda with Python 3.6](https://www.anaconda.com/download/), though you can also use 2.7 if you want, for now. If you need help, follow the [installation instructions on the Anaconda site](https://docs.anaconda.com/anaconda/install/linux).
+
+* OpenCL Driver.
+    * If you're getting `pyopencl.cffi_cl.LogicError: clGetPlatformIDs failed: <unknown error -1001>`, that means you don't have any OpenCL compatible devices, or that your drivers aren't updated.
 
 Once that's installed, you'll want to create an environment which you'll be developing in, and switch to it. (The quotes aren't necessary as long as there aren't spaces in the name)
 
