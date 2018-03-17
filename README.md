@@ -158,6 +158,7 @@ To install this repository for development, first, you mast have the following t
 
 * OpenCL Driver.
     * If you're getting `pyopencl.cffi_cl.LogicError: clGetPlatformIDs failed: <unknown error -1001>`, that means you don't have any OpenCL compatible devices, or that your drivers aren't updated. Try `sudo apt install mesa-opencl-icd`. If that fails, try `conda install pocl` for the CPU version, or see if you can find other drivers.
+    * [Here](https://documen.tician.de/pyopencl/misc.html#installation) is a good tutorial for correctly installing PyOpenCL
 
 Once that's installed, you'll want to create an environment which you'll be developing in, and switch to it. (The quotes aren't necessary as long as there aren't spaces in the name)
 
