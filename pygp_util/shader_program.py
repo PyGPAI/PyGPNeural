@@ -1,10 +1,16 @@
 import pyopencl as cl
 from .get_nth_device import get_nth_gpu
-
+from .get_nth_device import get_nth_cpu
 class ShaderProgram(object):
     def __init__(self, gpu=None):
         if gpu is None or isinstance(gpu, int):
-            gpu = get_nth_gpu(gpu)
+            try:
+                gpu = get_nth_gpu(gpu)
+            except IndexError:
+                try:
+                    gpu = get_nth_gpu(None)
+                except IndexError:
+                    gpu = get_nth_cpu(None)
 
         self.gpu = gpu
         self.ctx = cl.Context([gpu])
