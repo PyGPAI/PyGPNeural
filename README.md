@@ -80,6 +80,11 @@ To install this repository for development, first, you mast have the following t
 
 * Python. However, I recommend [Anaconda with Python 3.6](https://www.anaconda.com/download/), though you can also use 2.7 if you want, for now
 
+* OpenCL. You'll need to install an OpenCL driver. If you have AMD, try here: https://support.amd.com/en-us/kb-articles/Pages/OpenCL2-Driver.aspx
+    * If you get `from pyopencl._cffi import ffi as _ffi
+ImportError: DLL load failed: The specified procedure could not be found.` It's most likely because you don't have an OpenCL driver.
+    * If there is no OpenCL driver for your system, use `conda install pocl` to run things off of the CPU.
+
 Once that's installed, you'll want to create an environment which you'll be developing in, and switch to it. (The quotes aren't necessary as long as there aren't spaces in the name)
 
 `conda create --name 'YOUR ENVIRONMENT NAME'`
