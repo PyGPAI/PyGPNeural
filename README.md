@@ -60,12 +60,8 @@ In the directory where you want this repository to show up, run:
 
     conda create --name pyneural
     activate pyneural
-    conda install pip
-    pip install pubsub
-    conda install -c conda-forge opencv
-    conda install -c conda-forge pyopencl
-    conda install numpy
-    conda install pytest
+    conda install -c conda-forge opencv pyopencl numpy pytest pip
+    pip install pubsub pytube
 
     git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural
     cd PyGPNeural`
@@ -141,12 +137,8 @@ In the directory where you want this repository to show up, run:
 
     conda create --name pyneural
     conda activate pyneural
-    conda install pip
-    pip install pubsub
-    conda install --channel loopbio --channel conda-forge --channel pkgw-forge gtk2 ffmpeg gtk2-feature opencv
-    conda install -c conda-forge pyopencl
-    conda install numpy
-    conda install pytest
+    conda install --channel loopbio --channel conda-forge --channel pkgw-forge gtk2 ffmpeg gtk2-feature opencv pyopencl numpy pytest pip
+    pip install pubsub pytube
 
     git clone https://github.com/PyGPAI/PyGPNeural.git PyGPNeural &&\
     cd PyGPNeural
