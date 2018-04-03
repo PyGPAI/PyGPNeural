@@ -5,6 +5,8 @@ import pygp_util as pgpu
 from .shader_util import shader_dir as v1_shader_dir
 import time
 
+import math as m
+
 import numpy as np
 if False:
     from typing import Tuple
@@ -40,38 +42,40 @@ def v1_nocl_callback(
 
     def gpu_main_update(frame  # type: np.ndarray
                         ):
-        edge = rgc_cb(frame)[0]
+        edge = cv2.cvtColor(rgc_cb(frame)[0], cv2.COLOR_RGB2GRAY)
+        diag = m.sqrt(2)
 
-        time32 = (time.time() * 1000) % (2 ** 32)
+        north = np.array([[diag,   1,  diag],
+                          [0,      0,     0],
+                          [-diag, -1, -diag]])
+        north_east = np.array([[ 0,     1, diag],
+                               [-1,     0, 1],
+                               [-diag, -1, 0]])
+        east = np.array([[-diag, 0, diag],
+                         [-1,    0, 1],
+                         [-diag, 0, diag]])
+        south_east = np.array([[-diag, -1, 0],
+                               [-1,     0, 1],
+                               [ 0, 1, diag]])
+        north_frame = cv2.filter2D(edge, -1, north)
+        north_east_frame = cv2.filter2D(edge, -1, north_east)
+        east_frame = cv2.filter2D(edge, -1, east)
+        south_east_frame = cv2.filter2D(edge, -1, south_east)
 
-        p.build.blob(
-            p.queue,
-            (request_size[1], request_size[0]),
-            (8, 8),
-            in_buf,
-                     np.uint32(time32),
-            by_buf,
-            yb_buf,
-            bw_buf,
-            rg_buf,
-            gr_buf,
-            orient_buf,
-            orient_group_buf,
-            orient_dbg_buf,
-                     )
+        hue_num = (north_frame*0+north_east_frame*85+east_frame*170+south_east_frame*255).astype(np.int)
+        hue_div = (north_frame+north_east_frame+east_frame+south_east_frame).astype(np.int)
 
-        cl.enqueue_copy(p.queue, by_np, by_buf).wait()
-        cl.enqueue_copy(p.queue, yb_np, yb_buf).wait()
-        cl.enqueue_copy(p.queue, bw_np, bw_buf).wait()
-        cl.enqueue_copy(p.queue, rg_np, rg_buf).wait()
-        cl.enqueue_copy(p.queue, gr_np, gr_buf).wait()
-        cl.enqueue_copy(p.queue, orient_np, orient_buf).wait()
-        cl.enqueue_copy(p.queue, orient_group_np, orient_group_buf).wait()
-        cl.enqueue_copy(p.queue, orient_dbg_np, orient_dbg_buf).wait()
+        with np.errstate(divide='ignore', invalid='ignore'):
+            hue = hue_num/hue_div
+            hue[hue==np.inf]=0
+            hue = np.nan_to_num(hue)
 
-        cv2.cvtColor(orient_dbg_np, cv2.COLOR_HSV2BGR, dst=orient_dbg_np)
+        hsv = np.full((hue.shape + (3,)), 255, np.uint8)
+        hsv[:,:,0] = hue[:,:]
 
-        return [ by_np, yb_np, bw_np, rg_np, gr_np, orient_dbg_np
+        hsv_col = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+        return [ hsv_col, north_frame, north_east_frame, east_frame, south_east_frame
                 ]
 
     return gpu_main_update
