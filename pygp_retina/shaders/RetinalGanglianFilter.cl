@@ -157,15 +157,14 @@ __kernel void rgc(
 
     uchar c = guardGetColor(coord, rgb_in, edge_brightness);
 #ifdef EDGE_FILTER
-
-    int csq3 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
+    int csq3 =get_surround_square_avg(coord, 1, rgb_in, c);
 #endif
 
 #ifdef RELATIVE_COLOR_FILTER
     int csq1 = get_some_surround_square_avg(coord, 1, 1, rgb_in, c);
-    int csq4 = get_sparse_surround_square_avg(coord, 8, 4, seed, rgb_in, c);
+    int csq4 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
     #ifdef RELATIVE_TIME_FILTER
-    csq4 = (csq4 + get_sparse_surround_square_avg(coord, 8, 4, seed, avg_time_out, c)*2)/3;
+    csq4 = (csq4 + get_sparse_surround_square_avg(coord, 4, 2, seed, avg_time_out, c)*2)/3;
     #endif
 #endif
 

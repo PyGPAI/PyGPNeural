@@ -7,16 +7,16 @@ if False:
     from typing import Tuple
 
 def show_v1(cam,
-                    request_size=(1280, 720),  # type: Tuple[int, int]
+                    request_size=(640, 480),  # type: Tuple[int, int]
                     fps_limit=60  # type: float
                 ):
     def cam_handler(frame, cam_id):
         win.frame_dict[str(cam_id) + "Frame"] = frame
 
     cam_thread = camp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit,
-                                           high_speed=False)
+                                           high_speed=True)
 
-    win.sub_win_loop(names=['orient_dbg_np','orient_ddbg_np','orient_dbg_np2','orient_dbg_n4p','orient_dbg_n5p',
+    win.sub_win_loop(names=['by','yb','bw','rg','gr', 'orient_dbg'
                             ],
                      input_cams=[cam],
                      input_vid_global_names=[str(cam) + 'Frame'],

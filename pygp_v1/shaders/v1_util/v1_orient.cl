@@ -7,14 +7,14 @@ void excite_and_inhibit_orient(
     short4* totalNeuronGroup,
     short4* inputNeuronGroup
 ){{
-    totalNeuronGroup->x += inputNeuronGroup->x;
-    totalNeuronGroup->y += inputNeuronGroup->y;
-    totalNeuronGroup->z += inputNeuronGroup->z;
-    totalNeuronGroup->w += inputNeuronGroup->w;
-    totalNeuronGroup->x -= inputNeuronGroup->z;
-    totalNeuronGroup->y -= inputNeuronGroup->w;
-    totalNeuronGroup->z -= inputNeuronGroup->x;
-    totalNeuronGroup->w -= inputNeuronGroup->y;
+    totalNeuronGroup->x = min(totalNeuronGroup->x + inputNeuronGroup->x, 255<<2);
+    totalNeuronGroup->y = min(totalNeuronGroup->y + inputNeuronGroup->y, 255<<2);
+    totalNeuronGroup->z = min(totalNeuronGroup->z + inputNeuronGroup->z, 255<<2);
+    totalNeuronGroup->w = min(totalNeuronGroup->w + inputNeuronGroup->w, 255<<2);
+    totalNeuronGroup->x = max(totalNeuronGroup->x-inputNeuronGroup->z,0);
+    totalNeuronGroup->y = max(totalNeuronGroup->y-inputNeuronGroup->w,0);
+    totalNeuronGroup->z = max(totalNeuronGroup->z-inputNeuronGroup->x,0);
+    totalNeuronGroup->w = max(totalNeuronGroup->w-inputNeuronGroup->y,0);
 }}
 
 void set_from_compass(

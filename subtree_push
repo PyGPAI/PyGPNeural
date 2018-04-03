@@ -1,7 +1,7 @@
 
 #git remote add pygp_util https://github.com/SimLeek/PyGPUtil.git
 #git remote add pygp_retina https://github.com/SimLeek/pygp_retina.git
-#git remote add cv-pubsubs https://github.com/SimLeek/cv_pubsubs.git
+#git remote add cv_pubsubs https://github.com/SimLeek/cv_pubsubs.git
 # after commit:
 git subtree push --prefix=pygp_util pygp_util master
 git subtree push --prefix=pygp_retina pygp_retina master

@@ -1,6 +1,8 @@
 import unittest as ut
 from .show_rgc import display_rgc
 
+import os
+my_dir = os.path.dirname(os.path.abspath(__file__))
 
 # todo: find AI/Robotics competitions for test case ideas
 # todo: avg time test: check single pixel changes over time, but slowly

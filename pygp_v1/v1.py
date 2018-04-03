@@ -100,11 +100,7 @@ def v1_callback(
 
         cv2.cvtColor(orient_dbg_np, cv2.COLOR_HSV2BGR, dst=orient_dbg_np)
 
-        return [orient_dbg_np,
-yb_np,
-bw_np,
-rg_np,
-gr_np,
+        return [ by_np, yb_np, bw_np, rg_np, gr_np, orient_dbg_np
                 ]
 
     return gpu_main_update

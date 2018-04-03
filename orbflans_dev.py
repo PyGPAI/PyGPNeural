@@ -1,4 +1,4 @@
-from pygp_v1.v1 import v1_callback
+from pygp_retina.rgc import rgc_callback
 import cv2
 
 import numpy as np
@@ -6,14 +6,14 @@ if False:
     from typing import Tuple, List, Any
 import math
 
-# check every pixel for equilateral/right triangle
-
+# check every pixel for equilateral/right
 def col_mask_callback(
         request_size=(1280, 720),  # type: Tuple[int, int]
         draw_keypoints=True,
         gpu=1
 ):
-        rgc_cb = v1_callback(request_size,
+        rgc_cb = rgc_callback(request_size,
+                              relative_color_filter=False,
                                              gpu = gpu   )
 
         kp_store = ([],[])
@@ -31,7 +31,7 @@ def col_mask_callback(
             nonlocal kp_store, orb, flann, edge_original
 
             edges = rgc_cb(frame)
-            edge = edges[2]
+            edge = edges[0]
 
             kp = orb.detect(edge, None) # type: List[Any]
             kp, des = orb.compute(edge, kp)
@@ -72,9 +72,9 @@ def col_mask_callback(
 
             if draw_keypoints:
                 edge = cv2.drawMatchesKnn(edge, kp, edge_original, kp_store[0], matches, None, **draw_params)
-            edges[2] = edge
+            edges[0] = edge
 
-            return (edges[2],)
+            return (edges[0],)
 
         return gpu_main_update
 
@@ -95,7 +95,7 @@ def display_col_mask(cam,
         win.frame_dict[str(cam_id) + "Frame"] = frame
 
     cam_thread = camp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit,
-                                           high_speed=True)
+                                           high_speed=False)
 
     win.sub_win_loop(names=['by_np','yb_np','bw_np','rg_np','gr_np'],
 
@@ -109,7 +109,7 @@ def display_col_mask(cam,
 
 if __name__=='__main__':
     t = display_col_mask(cam=0,
-                    request_size=(640, 480),
+                    request_size=(1280, 720),
                     fps_limit=60)
 
     t.join()

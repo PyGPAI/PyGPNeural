@@ -16,7 +16,8 @@ void rgb_to_blob(
 ){{
     int3 c = guardGetColor(coord, rgb_in, edge_color);
 
-    int3 csq4 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
+    int3 csq4 = get_surround_square_avg(coord, 1, rgb_in, c);
+    //int3 csq4 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
 
     int redVGreen = ((int)(c.y)-csq4.z);
     int greenVRed = ((int)(c.z)-csq4.y);
