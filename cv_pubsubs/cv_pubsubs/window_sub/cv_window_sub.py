@@ -37,6 +37,8 @@ def sub_win_loop(
                 frames = set_frames_from_callbacks(input_vid_global_names, callbacks, i)
                 for f in range(len(frames)):
                     cv2.imshow(names[f % len(names)], frames[f])
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 destruct_windows(names, input_cams)
                 return
+
