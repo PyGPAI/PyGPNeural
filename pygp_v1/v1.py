@@ -9,7 +9,7 @@ import numpy as np
 if False:
     from typing import Tuple
 
-from pygp_retina import rgc_callback
+from pygp_retina import rgc_callback, rgc_nocl_callback
 
 def v1_program(
                request_size=(1280,720),
@@ -26,6 +26,55 @@ def v1_program(
 
     return shady_p
 
+
+def v1_nocl_callback(
+        request_size=(1280, 720),  # type: Tuple[int, int]
+        gpu=0
+):
+    rgc_cb = rgc_nocl_callback(request_size=request_size,
+                          relative_color_filter=True,
+                          edge_filter=False,
+                          time_filter=False,
+                          combine_time_and_color=False,
+                          gpu=1)
+
+    def gpu_main_update(frame  # type: np.ndarray
+                        ):
+        edge = rgc_cb(frame)[0]
+
+        time32 = (time.time() * 1000) % (2 ** 32)
+
+        p.build.blob(
+            p.queue,
+            (request_size[1], request_size[0]),
+            (8, 8),
+            in_buf,
+                     np.uint32(time32),
+            by_buf,
+            yb_buf,
+            bw_buf,
+            rg_buf,
+            gr_buf,
+            orient_buf,
+            orient_group_buf,
+            orient_dbg_buf,
+                     )
+
+        cl.enqueue_copy(p.queue, by_np, by_buf).wait()
+        cl.enqueue_copy(p.queue, yb_np, yb_buf).wait()
+        cl.enqueue_copy(p.queue, bw_np, bw_buf).wait()
+        cl.enqueue_copy(p.queue, rg_np, rg_buf).wait()
+        cl.enqueue_copy(p.queue, gr_np, gr_buf).wait()
+        cl.enqueue_copy(p.queue, orient_np, orient_buf).wait()
+        cl.enqueue_copy(p.queue, orient_group_np, orient_group_buf).wait()
+        cl.enqueue_copy(p.queue, orient_dbg_np, orient_dbg_buf).wait()
+
+        cv2.cvtColor(orient_dbg_np, cv2.COLOR_HSV2BGR, dst=orient_dbg_np)
+
+        return [ by_np, yb_np, bw_np, rg_np, gr_np, orient_dbg_np
+                ]
+
+    return gpu_main_update
 
 def v1_callback(
         request_size=(1280, 720),  # type: Tuple[int, int]

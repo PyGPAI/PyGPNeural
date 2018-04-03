@@ -3,6 +3,9 @@ import numpy as np
 import pyopencl as cl
 import time
 
+import math as m
+import cv2
+
 import pygp_util as pgpu
 from .shader_util import shader_dir as rgc_shader_dir
 
@@ -38,6 +41,27 @@ def rgc_program(
 
     return shady_p
 
+def rgc_nocl_callback(
+        request_size=(1280, 720),  # type: Tuple[int, int]
+        relative_color_filter=True,
+        edge_filter=True,
+        time_filter=False,
+        combine_time_and_color=False,
+        gpu=None
+):
+    #todo: add color center surround filters here and call in function
+
+    def gpu_main_update(frame  # type: np.ndarray
+                        ):
+        diag = m.sqrt(2)
+        center_surround = np.array([[-diag,-1, -diag], [-1, 4+diag*4, -1], [-diag, -1, -diag]])
+        surround_center = np.array([[diag, 1, diag], [1, -4 - diag * 4, 1], [diag, 1, diag]])
+        center_surround_frame = cv2.filter2D(frame, -1, center_surround)
+        surround_center_frame = cv2.filter2D(frame, -1, surround_center)
+        edge_frame = (np.full_like(frame,127, dtype=np.uint8)+(center_surround_frame/2) - (surround_center_frame/2)).astype(np.uint8)
+        return [edge_frame, center_surround_frame, surround_center_frame ]
+
+    return gpu_main_update
 
 def rgc_callback(
         request_size=(1280, 720),  # type: Tuple[int, int]

@@ -14,3 +14,11 @@ class TestDisplay(ut.TestCase):
                         request_size=(640, 480),
                         fps_limit=60)
         t.join()
+
+    def test_nocl_display(self):
+        t = display_rgc(cam=0,
+                        request_size=(640, 480),
+                        fps_limit=60,
+                        no_cl=True
+                        )
+        t.join()

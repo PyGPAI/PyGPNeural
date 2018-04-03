@@ -5,7 +5,7 @@
 # after commit:
 git subtree push --prefix=pygp_util pygp_util master
 git subtree push --prefix=pygp_retina pygp_retina master
-git subtree push --prefix=cv_pubsubs cv-pubsubs master
+git subtree push --prefix=cv_pubsubs cv_pubsubs master
 
 #git subtree add --prefix=pygp_util pygp_util master
 #git subtree add --prefix=pygp_retina pygp_retina master
