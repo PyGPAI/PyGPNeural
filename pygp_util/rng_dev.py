@@ -3,7 +3,9 @@ import os
 import numpy as np
 import pyopencl as cl
 
-import cv_pubsubs as cvp
+from cv_pubsubs import window_sub as ws
+from cv_pubsubs import webcam_pub as wp
+
 import time
 
 if False:
@@ -90,14 +92,14 @@ def display_rng(cam,
                 fps_limit=60  # type: float
                 ):
     def cam_handler(frame, cam_id):
-        cvp.frame_dict[str(cam_id) + "Frame"] = frame
+        ws.SubscriberWindows.frame_dict[str(cam_id) + "Frame"] = frame
 
-    cam_thread = cvp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit)
+    cam_thread = wp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit)
 
-    cvp.sub_win_loop(names=['Fast Random Number Generator'],
+    ws.SubscriberWindows(window_names=['Fast Random Number Generator'],
                      input_cams=[cam],
                  input_vid_global_names=[str(cam) + 'Frame'],
-                 callbacks=[run_rng(request_size)])
+                 callbacks=[run_rng(request_size)]).loop()
 
     return cam_thread
 

@@ -14,14 +14,14 @@ def display_rgc(cam,
                 no_cl=False  # type: bool
                 ):
     def cam_handler(frame, cam_id):
-        win.frame_dict[str(cam_id) + "Frame"] = frame
+        win.SubscriberWindows.frame_dict[str(cam_id) + "Frame"] = frame
 
     cam_thread = camp.frame_handler_thread(cam, cam_handler, fps_limit=fps_limit,
                                            high_speed=high_speed)
 
     callback = rgc_callback if not no_cl else rgc_nocl_callback
 
-    win.sub_win_loop(names=['RGC Relative Color Filter',
+    win.SubscriberWindows(window_names=['RGC Relative Color Filter',
                             'RGC Edge Filter',
                             'RGC Time Averaging Filter'
                             ],
@@ -32,6 +32,6 @@ def display_rgc(cam,
                                              edge_filter = True,
                                              gpu = 0)
 
-                                ])
+                                ]).loop()
 
     return cam_thread
