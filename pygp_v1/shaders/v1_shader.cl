@@ -12,6 +12,7 @@ __constant int sparsity = 1;
 #include "v1_util/v1_orient.cl"
 #include "v1_util/v1_orient_group.cl"
 #include "v1_util/v1_debug.cl"
+#include "v1_util/v1_end_stop.cl"
 
 __kernel void blob(
     const __global uchar* rgb_in,
@@ -23,6 +24,7 @@ __kernel void blob(
     __global uchar* gr_out,
     __global uchar* orient_out,
     __global uchar* orient_group_out,
+    __global uchar* end_stop_out,
     __global uchar* orient_dbg_out
 ){{
     int2 coord = (int2)(get_global_id(0), get_global_id(1));
@@ -51,9 +53,11 @@ __kernel void blob(
 
     orient_to_orient_group(coord, orient_out, orient_group_out);
 
-    orient_dbg(
+    orient_group_to_end_stop(coord, orient_group_out, end_stop_out);
+
+    end_stop_dbg(
         coord,
-        orient_group_out,
+        end_stop_out,
         orient_dbg_out
     );
 

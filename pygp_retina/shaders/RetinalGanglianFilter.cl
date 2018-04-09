@@ -162,9 +162,9 @@ __kernel void rgc(
 
 #ifdef RELATIVE_COLOR_FILTER
     int csq1 = get_some_surround_square_avg(coord, 1, 1, rgb_in, c);
-    int csq4 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
+    //int csq4 = get_sparse_surround_square_avg(coord, 4, 2, seed, rgb_in, c);
     #ifdef RELATIVE_TIME_FILTER
-    csq4 = (csq4 + get_sparse_surround_square_avg(coord, 4, 2, seed, avg_time_out, c)*2)/3;
+    //csq4 = (csq4 + get_sparse_surround_square_avg(coord, 4, 2, seed, avg_time_out, c)*2)/3;
     #endif
 #endif
 
@@ -174,8 +174,8 @@ __kernel void rgc(
 #endif
 
 #ifdef RELATIVE_COLOR_FILTER
-    int colorDiff  = max((int)(c)-csq4,(int)0)/2 + max((int)(c)-csq1, (int)0)/2;
-    int colorDiff2 = max(csq4-(int)(c),(int)0)/2 + max(csq1-(int)(c), (int)0)/2;
+    int colorDiff  = /*max((int)(c)-csq4,(int)0)/2 +*/ max((int)(c)-csq1, (int)0)/2;
+    int colorDiff2 = /*max(csq4-(int)(c),(int)0)/2 +*/ max(csq1-(int)(c), (int)0)/2;
 
     relative_color_out[gindex3( coord )]
     =min(max((int)(127+((colorDiff-colorDiff2)*2

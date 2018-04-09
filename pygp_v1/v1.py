@@ -115,6 +115,9 @@ def v1_callback(
     orient_group_np = np.full((request_size[1], request_size[0], 4), 127, dtype=np.uint8)
     orient_group_buf = cl.Buffer(p.ctx, p.mf.WRITE_ONLY, orient_group_np.nbytes)
 
+    end_stop_np = np.full((request_size[1], request_size[0], 8), 127, dtype=np.uint8)
+    end_stop_buf = cl.Buffer(p.ctx, p.mf.WRITE_ONLY, end_stop_np.nbytes)
+
     orient_dbg_np = np.full((request_size[1], request_size[0], 3), 127, dtype=np.uint8)
     orient_dbg_buf = cl.Buffer(p.ctx, p.mf.WRITE_ONLY, orient_dbg_np.nbytes)
 
@@ -139,6 +142,7 @@ def v1_callback(
             gr_buf,
             orient_buf,
             orient_group_buf,
+            end_stop_buf,
             orient_dbg_buf,
                      )
 
@@ -149,6 +153,7 @@ def v1_callback(
         cl.enqueue_copy(p.queue, gr_np, gr_buf).wait()
         cl.enqueue_copy(p.queue, orient_np, orient_buf).wait()
         cl.enqueue_copy(p.queue, orient_group_np, orient_group_buf).wait()
+        cl.enqueue_copy(p.queue, end_stop_np, end_stop_buf).wait()
         cl.enqueue_copy(p.queue, orient_dbg_np, orient_dbg_buf).wait()
 
         cv2.cvtColor(orient_dbg_np, cv2.COLOR_HSV2BGR, dst=orient_dbg_np)

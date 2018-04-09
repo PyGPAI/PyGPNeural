@@ -8,114 +8,109 @@ void orient_group_to_end_stop(
     __global uchar* orient_group_out,
     __global uchar* end_stop_out
 ){{
-    end_stop_out[gindex2(coord)*8+0]= 0;
-    end_stop_out[gindex2(coord)*8+1]= 0;
-    end_stop_out[gindex2(coord)*8+2]= 0;
-    end_stop_out[gindex2(coord)*8+3]= 0;
-    end_stop_out[gindex2(coord)*8+4]= 0;
-    end_stop_out[gindex2(coord)*8+5]= 0;
-    end_stop_out[gindex2(coord)*8+6]= 0;
-    end_stop_out[gindex2(coord)*8+7]= 0;
 
-    short endStopTemp[8];
 
-    endStopTemp[0]= 0;
-    endStopTemp[1]= 0;
-    endStopTemp[2]= 0;
-    endStopTemp[3]= 0;
-    endStopTemp[4]= 0;
-    endStopTemp[5]= 0;
-    endStopTemp[6]= 0;
-    endStopTemp[7]= 0;
 
-    int2 getCoord;
-    for(int i=0;i<=0;++i){{
-        getCoord = coord+(int2)(i, 0);
-        end_stop_out[gindex2(coord)*8+0] -= orient_group_out[gindex2(getCoord)*4+2];
-        endStopTemp[0] += orient_group_out[gindex2(getCoord)*4+0];
+    float n = orient_group_out[gindex2(coord)*4];
+    float ne = orient_group_out[gindex2(coord)*4+1]/sqrt(2.0);
+    float e = orient_group_out[gindex2(coord)*4+2];
+    float se = orient_group_out[gindex2(coord)*4+3]/sqrt(2.0);
 
-        getCoord = coord+(int2)(i, -i);
-        end_stop_out[gindex2(coord)*8+1] -= orient_group_out[gindex2(getCoord)*4+3];
-        endStopTemp[1] += orient_group_out[gindex2(getCoord)*4+1];
+    float2 direction = (float2)(e+ne+se,n+ne-se);
+    float2 direction_out =(float2)(e+ne+se, -n+ne-se);
+    float2 direction_out2 =(float2)(e+ne-se, n+ne+se);
 
-        getCoord = coord+(int2)(0, i);
-        end_stop_out[gindex2(coord)*8+2] -= orient_group_out[gindex2(getCoord)*4+0];
-        endStopTemp[2] += orient_group_out[gindex2(getCoord)*4+2];
-
-        getCoord = coord+(int2)(i, i);
-        end_stop_out[gindex2(coord)*8+3] -= orient_group_out[gindex2(getCoord)*4+1];
-        endStopTemp[3] += orient_group_out[gindex2(getCoord)*4+3];
+    if (length(direction_out)>length(direction)){{
+        direction = direction_out;
     }}
-    for(int i=-1;i<=-1;++i){{
-        getCoord = coord-(int2)(i, 0);
-        endStopTemp[4] -=  (orient_group_out[gindex2(getCoord)*4+0]);
-        //end_stop_out[gindex2(coord)*8+4] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+2]), (short)(255));
-
-        getCoord = coord-(int2)(i, -i);
-        endStopTemp[5] -=  (orient_group_out[gindex2(getCoord)*4+1]);
-        //end_stop_out[gindex2(coord)*8+5] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+3]), (short)(255));
-
-        getCoord = coord-(int2)(0, i);
-        endStopTemp[6] -=  (orient_group_out[gindex2(getCoord)*4+2]);
-        //end_stop_out[gindex2(coord)*8+6] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+0]), (short)(255));
-
-        getCoord = coord-(int2)(i, i);
-        endStopTemp[7] -= (orient_group_out[gindex2(getCoord)*4+3]);
-        //end_stop_out[gindex2(coord)*8+7] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+1]), (short)(255));
+    if (length(direction_out2)> length(direction)){{
+        direction=direction_out2;
     }}
 
-    for(int i=0;i<=0;++i){{
-        getCoord = coord-(int2)(i, 0);
-        end_stop_out[gindex2(coord)*8+4] -= orient_group_out[gindex2(getCoord)*4+2];
-        endStopTemp[4] += orient_group_out[gindex2(getCoord)*4+0];
+    direction=normalize(direction);
 
-        getCoord = coord-(int2)(i, -i);
-        end_stop_out[gindex2(coord)*8+5] -= orient_group_out[gindex2(getCoord)*4+3];
-        endStopTemp[5] += orient_group_out[gindex2(getCoord)*4+1];
+    ne = orient_group_out[gindex2(coord)*4+1];
+    se = orient_group_out[gindex2(coord)*4+3];
 
-        getCoord = coord-(int2)(0, i);
-        end_stop_out[gindex2(coord)*8+6] -= orient_group_out[gindex2(getCoord)*4+0];
-        endStopTemp[6] += orient_group_out[gindex2(getCoord)*4+2];
+    for (int tail = 4;tail<=5;tail++){{
+        float2 p = (float2)(coord.x,coord.y)-tail*direction;
+        int2 pos;
+        pos.x = (int)(p.x); pos.y = (int)(p.y);
 
-        getCoord = coord-(int2)(i, i);
-        end_stop_out[gindex2(coord)*8+7] -= orient_group_out[gindex2(getCoord)*4+1];
-        endStopTemp[7] += orient_group_out[gindex2(getCoord)*4+3];
+        float n2 = orient_group_out[gindex2(pos)*4];
+        float ne2 = orient_group_out[gindex2(pos)*4+1];
+        float e2 = orient_group_out[gindex2(pos)*4+2];
+        float se2 = orient_group_out[gindex2(pos)*4+3];
+
+        n=n+n2;
+        ne=ne+ne2;
+        e=e+e2;
+        se=se+se2;
     }}
 
-    for(int i=1;i<=1;++i){{
-        getCoord = coord+(int2)(i, 0);
-        endStopTemp[0] -= (orient_group_out[gindex2(getCoord)*4+0]);
-        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+2]), (short)(255));
+    for (int head = 2;head<=7;head++){{
+        float2 p = (float2)(coord.x,coord.y)+head*direction;
+        int2 pos;
+        pos.x = (int)(p.x); pos.y = (int)(p.y);
 
-        getCoord = coord+(int2)(i, -i);
-        endStopTemp[1] -= (orient_group_out[gindex2(getCoord)*4+1]);
-        //end_stop_out[gindex2(coord)*8+1] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+3]), (short)(255));
+        float n2 = orient_group_out[gindex2(pos)*4];
+        float ne2 = orient_group_out[gindex2(pos)*4+1];
+        float e2 = orient_group_out[gindex2(pos)*4+2];
+        float se2 = orient_group_out[gindex2(pos)*4+3];
 
-        getCoord = coord+(int2)(0, i);
-        endStopTemp[2] -= (orient_group_out[gindex2(getCoord)*4+2]);
-        //end_stop_out[gindex2(coord)*8+0] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+0]), (short)(255));
-
-        getCoord = coord+(int2)(i, i);
-        endStopTemp[3] -= (orient_group_out[gindex2(getCoord)*4+3]);
-
-        //end_stop_out[gindex2(coord)*8+3] -= 255 - min((short)(orient_group_out[gindex2(getCoord)*4+1]), (short)(255));
-
+        n=n-2*n2-ne2-se2;
+        ne=ne-2*ne2-n2-e2;
+        e=e-2*e2-ne2-se2;
+        se=se-2*se2-e2-n2;
     }}
 
-    //add temp first
+    end_stop_out[gindex2(coord)*8]= (uchar)fmax(fmin((float)n,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+1]= (uchar)fmax(fmin((float)ne,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+2]= (uchar)fmax(fmin((float)e,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+3]= (uchar)fmax(fmin((float)se,(float)255.0), (float)0.0);
 
-    for(int k=0; k<8;++k){{
-        for(int j=1; j<=3;++j){{
-            end_stop_out[gindex2(coord)*8+k] = max((short)(0), (short)(end_stop_out[gindex2(coord)*8+k] - (endStopTemp[(k+j)%8]>>2)));
-            end_stop_out[gindex2(coord)*8+k] = max((short)(0), (short)(end_stop_out[gindex2(coord)*8+k] - (endStopTemp[(k-j)%8]>>2)));
-        }}
+    n = orient_group_out[gindex2(coord)*4];
+    ne = orient_group_out[gindex2(coord)*4+1]*sqrt(2.0);
+    e = orient_group_out[gindex2(coord)*4+2];
+    se = orient_group_out[gindex2(coord)*4+3]*sqrt(2.0);
+
+    for (int tail = 4;tail<=5;tail++){{
+        float2 p = (float2)(coord.x,coord.y)+tail*direction;
+        int2 pos;
+        pos.x = (int)(p.x); pos.y = (int)(p.y);
+
+        float n2 = orient_group_out[gindex2(pos)*4];
+        float ne2 = orient_group_out[gindex2(pos)*4+1]*sqrt(2.0);
+        float e2 = orient_group_out[gindex2(pos)*4+2];
+        float se2 = orient_group_out[gindex2(pos)*4+3]*sqrt(2.0);
+
+        n=n+n2;
+        ne=ne+ne2;
+        e=e+e2;
+        se=se+se2;
     }}
 
-    for(int k=0; k<8;++k){{
-        if (end_stop_out[gindex2(coord)*8+k]<0){{
-            end_stop_out[gindex2(coord)*8+k]=0;
-        }}
+    for (int head = 2;head<=7;head++){{
+        float2 p = (float2)(coord.x,coord.y)-head*direction;
+        int2 pos;
+        pos.x = (int)(p.x); pos.y = (int)(p.y);
+
+        float n2 = orient_group_out[gindex2(pos)*4];
+        float ne2 = orient_group_out[gindex2(pos)*4+1]*sqrt(2.0);
+        float e2 = orient_group_out[gindex2(pos)*4+2];
+        float se2 = orient_group_out[gindex2(pos)*4+3]*sqrt(2.0);
+
+        n=n-n2-2*ne2-se2;
+        ne=ne-2*ne2-n2-e2;
+        e=e-2*e2-ne2-se2;
+        se=se-2*se2-e2-n2;
     }}
+
+    end_stop_out[gindex2(coord)*8+4]= (uchar)fmax(fmin((float)n,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+5]= (uchar)fmax(fmin((float)ne,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+6]= (uchar)fmax(fmin((float)e,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+7]= (uchar)fmax(fmin((float)se,(float)255.0), (float)0.0);
+
 }}
 
 void end_stop_dbg(
@@ -125,41 +120,61 @@ void end_stop_dbg(
 ){{
         //orientation of line, 0-252
 
-    short4 end = (short4)(
-        (short)(end_stop[gindex2(coord)*8+0])+(short)(end_stop[gindex2(coord)*8+4]),
-        (short)(end_stop[gindex2(coord)*8+1])+(short)(end_stop[gindex2(coord)*8+5]),
-        (short)(end_stop[gindex2(coord)*8+2])+(short)(end_stop[gindex2(coord)*8+6]),
-        (short)(end_stop[gindex2(coord)*8+3])+(short)(end_stop[gindex2(coord)*8+7])
-    );
+    int end[8];
+    end[0]=end_stop[gindex2(coord)*8];
+    end[1]=end_stop[gindex2(coord)*8+1];
+    end[2]=end_stop[gindex2(coord)*8+2];
+    end[3]=end_stop[gindex2(coord)*8+3];
+    end[4]=end_stop[gindex2(coord)*8+4];
+    end[5]=end_stop[gindex2(coord)*8+5];
+    end[6]=end_stop[gindex2(coord)*8+6];
+    end[7]=end_stop[gindex2(coord)*8+7];
 
-    orient_dbg_out[gindex2(coord)*3+0] = (
+    orient_dbg_out[gindex2(coord)*3+0] = (uchar)((
                                          0+
-                                         end.x*85+
-                                         end.y*170+
-                                         end.z*255
+                                         end[1]*36+
+                                         end[2]*73+
+                                         end[3]*109+
+                                         end[4]*146+
+                                         end[5]*182+
+                                         end[6]*219+
+                                         end[7]*255
                                         )
                                                         /
                                         (
-                                         end.x +
-                                         end.y +
-                                         end.z +
-                                         end.w
-                                         );
+                                         end[0]+
+                                         end[1]+
+                                         end[2]+
+                                         end[3]+
+                                         end[4]+
+                                         end[5]+
+                                         end[6]+
+                                         end[7]
+                                         ));
 
     //std dev of line, approx
-    orient_dbg_out[gindex2(coord)*3+1] =
+    orient_dbg_out[gindex2(coord)*3+1] =(uchar)
                                         (
-                                        abs(end.x - end.y)+
-                                        abs(end.y - end.z)+
-                                        abs(end.z - end.w)+
-                                        abs(end.w - end.x)
+                                        abs(end[0] - end[1])+
+                                        abs(end[1] - end[2])+
+                                        abs(end[2] - end[3])+
+                                        abs(end[3] - end[4])+
+                                        abs(end[4] - end[5])+
+                                        abs(end[5] - end[6])+
+                                        abs(end[6] - end[7])+
+                                        abs(end[7] - end[0])
                                         );
 
     //prominence of line
-    orient_dbg_out[gindex2(coord)*3+2] = (end.x +
-                                          end.y +
-                                          end.z +
-                                          end.w );
+    orient_dbg_out[gindex2(coord)*3+2] = (uchar)(end[0]+
+                                          end[1]+
+                                          end[2]+
+                                          end[3]+
+                                          end[4]+
+                                          end[5]+
+                                          end[6]+
+                                          end[7]);
+
 }}
 
 #endif

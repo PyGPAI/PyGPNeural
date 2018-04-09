@@ -65,4 +65,89 @@ void blob_to_orient(
     orient_out[gindex2(coord)*4+3] = min((short)(temp.w>>2),(short)(255));
 }}
 
+
+int4 get_oriented_surround_square_avg(
+    int2 pos,
+    int rad,
+    const __global uchar* orient_in,
+    int4 orient_default
+){{
+    int4 surround = orient_default;
+    int num = 1;
+
+    for(int i=0; i<2*rad+1; ++i){{
+        int2 top = pos+(int2)(i-rad, -rad);
+        int2 bot = pos+(int2)(i-rad,rad);
+
+        int2 d = top - pos;
+
+
+        int4 tg = guardGetArray4(top, orient_in, orient_default);
+        surround.x = surround.x - abs(d.x)*tg.x + abs(d.x)*tg.z
+                                + abs(d.y)*tg.x - abs(d.y)*tg.z;
+        surround.y = surround.y - abs((d.x-d.y)/2)*tg.y + abs((d.x-d.y)/2)*tg.w
+                                + abs((d.x+d.y)/2)*tg.y - abs((d.x-d.y)/2)*tg.w;
+        surround.z = surround.z + abs(d.x)*tg.z - abs(d.x)*tg.x
+                                - abs(d.y)*tg.z + abs(d.y)*tg.x;
+        surround.w = surround.w + abs((d.x-d.y)/2)*tg.w - abs((d.x-d.y)/2)*tg.y
+                                - abs((d.x+d.y)/2)*tg.w + abs((d.x-d.y)/2)*tg.y;
+
+        d = bot - pos;
+        int4 bg = guardGetArray4(top, orient_in, orient_default);
+        surround.x = surround.x - abs(d.x)*bg.x + abs(d.x)*bg.z
+                                + abs(d.y)*bg.x - abs(d.y)*bg.z;
+        surround.y = surround.y - abs((d.x-d.y)/2)*bg.y + abs((d.x-d.y)/2)*bg.w
+                                + abs((d.x+d.y)/2)*bg.y - abs((d.x-d.y)/2)*bg.w;
+        surround.z = surround.z + abs(d.x)*bg.z - abs(d.x)*bg.x
+                                - abs(d.y)*bg.z + abs(d.y)*bg.x;
+        surround.w = surround.w + abs((d.x-d.y)/2)*bg.w - abs((d.x-d.y)/2)*bg.y
+                                - abs((d.x+d.y)/2)*bg.w + abs((d.x-d.y)/2)*bg.y;
+
+        num += 2;
+    }}
+    for(int j=0; j<2*rad+1; ++j){{
+        int2 left  = pos+(int2)(-rad, j-rad);
+        int2 right = pos+(int2)(rad,j-rad);
+
+        int2 d = left - pos;
+
+        int4 tg = guardGetArray4(left, orient_in, orient_default);
+        surround.x = surround.x - abs(d.x)*tg.x + abs(d.x)*tg.z
+                                + abs(d.y)*tg.x - abs(d.y)*tg.z;
+        surround.y = surround.y - abs((d.x-d.y)/2)*tg.y + abs((d.x-d.y)/2)*tg.w
+                                + abs((d.x+d.y)/2)*tg.y - abs((d.x-d.y)/2)*tg.w;
+        surround.z = surround.z + abs(d.x)*tg.z - abs(d.x)*tg.x
+                                - abs(d.y)*tg.z + abs(d.y)*tg.x;
+        surround.w = surround.w + abs((d.x-d.y)/2)*tg.w - abs((d.x-d.y)/2)*tg.y
+                                - abs((d.x+d.y)/2)*tg.w + abs((d.x-d.y)/2)*tg.y;
+
+        d = right - pos;
+        int4 bg = guardGetArray4(right, orient_in, orient_default);
+        surround.x = surround.x - abs(d.x)*bg.x + abs(d.x)*bg.z
+                                + abs(d.y)*bg.x - abs(d.y)*bg.z;
+        surround.y = surround.y - abs((d.x-d.y)/2)*bg.y + abs((d.x-d.y)/2)*bg.w
+                                + abs((d.x+d.y)/2)*bg.y - abs((d.x-d.y)/2)*bg.w;
+        surround.z = surround.z + abs(d.x)*bg.z - abs(d.x)*bg.x
+                                - abs(d.y)*bg.z + abs(d.y)*bg.x;
+        surround.w = surround.w + abs((d.x-d.y)/2)*bg.w - abs((d.x-d.y)/2)*bg.y
+                                - abs((d.x+d.y)/2)*bg.w + abs((d.x-d.y)/2)*bg.y;
+
+        num += 2;
+    }}
+    return surround/2;
+}}
+
+int4 excite_and_inhibit_orient_surround(
+    int2 coord,
+    __global uchar* orient
+){{
+
+    int4 orient_default = (int4)(orient[gindex2( coord )*4], orient[gindex2( coord )*4+1],
+            orient[gindex2( coord )*4+2], orient[gindex2( coord )*4+3]);
+
+    int4 temp = get_oriented_surround_square_avg(coord, 1, orient, orient_default);
+
+    return temp;
+}}
+
 #endif
