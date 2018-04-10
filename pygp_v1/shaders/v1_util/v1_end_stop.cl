@@ -29,8 +29,8 @@ void orient_group_to_end_stop(
 
     direction=normalize(direction);
 
-    ne = orient_group_out[gindex2(coord)*4+1];
-    se = orient_group_out[gindex2(coord)*4+3];
+    //ne = orient_group_out[gindex2(coord)*4+1];
+    //se = orient_group_out[gindex2(coord)*4+3];
 
     for (int tail = 4;tail<=5;tail++){{
         float2 p = (float2)(coord.x,coord.y)-tail*direction;
@@ -58,21 +58,21 @@ void orient_group_to_end_stop(
         float e2 = orient_group_out[gindex2(pos)*4+2];
         float se2 = orient_group_out[gindex2(pos)*4+3];
 
-        n=n-2*n2-ne2-se2;
-        ne=ne-2*ne2-n2-e2;
-        e=e-2*e2-ne2-se2;
-        se=se-2*se2-e2-n2;
+        n=n-n2-ne2*(sqrt(2.0)/2.0)-se2*(sqrt(2.0)/2.0);
+        ne=ne-ne2-n2*(sqrt(2.0)/2.0)-e2*(sqrt(2.0)/2.0);
+        e=e-e2-ne2*(sqrt(2.0)/2.0)-se2*(sqrt(2.0)/2.0);
+        se=se-se2-e2*(sqrt(2.0)/2.0)-n2*(sqrt(2.0)/2.0);
     }}
 
     end_stop_out[gindex2(coord)*8]= (uchar)fmax(fmin((float)n,(float)255.0), (float)0.0);
-    end_stop_out[gindex2(coord)*8+1]= (uchar)fmax(fmin((float)ne,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+1]= (uchar)fmax(fmin((float)ne*2,(float)255.0), (float)0.0);
     end_stop_out[gindex2(coord)*8+2]= (uchar)fmax(fmin((float)e,(float)255.0), (float)0.0);
-    end_stop_out[gindex2(coord)*8+3]= (uchar)fmax(fmin((float)se,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+3]= (uchar)fmax(fmin((float)se*2,(float)255.0), (float)0.0);
 
     n = orient_group_out[gindex2(coord)*4];
-    ne = orient_group_out[gindex2(coord)*4+1]*sqrt(2.0);
+    ne = orient_group_out[gindex2(coord)*4+1];
     e = orient_group_out[gindex2(coord)*4+2];
-    se = orient_group_out[gindex2(coord)*4+3]*sqrt(2.0);
+    se = orient_group_out[gindex2(coord)*4+3];
 
     for (int tail = 4;tail<=5;tail++){{
         float2 p = (float2)(coord.x,coord.y)+tail*direction;
@@ -80,9 +80,9 @@ void orient_group_to_end_stop(
         pos.x = (int)(p.x); pos.y = (int)(p.y);
 
         float n2 = orient_group_out[gindex2(pos)*4];
-        float ne2 = orient_group_out[gindex2(pos)*4+1]*sqrt(2.0);
+        float ne2 = orient_group_out[gindex2(pos)*4+1];
         float e2 = orient_group_out[gindex2(pos)*4+2];
-        float se2 = orient_group_out[gindex2(pos)*4+3]*sqrt(2.0);
+        float se2 = orient_group_out[gindex2(pos)*4+3];
 
         n=n+n2;
         ne=ne+ne2;
@@ -96,20 +96,20 @@ void orient_group_to_end_stop(
         pos.x = (int)(p.x); pos.y = (int)(p.y);
 
         float n2 = orient_group_out[gindex2(pos)*4];
-        float ne2 = orient_group_out[gindex2(pos)*4+1]*sqrt(2.0);
+        float ne2 = orient_group_out[gindex2(pos)*4+1];
         float e2 = orient_group_out[gindex2(pos)*4+2];
-        float se2 = orient_group_out[gindex2(pos)*4+3]*sqrt(2.0);
+        float se2 = orient_group_out[gindex2(pos)*4+3];
 
-        n=n-n2-2*ne2-se2;
-        ne=ne-2*ne2-n2-e2;
-        e=e-2*e2-ne2-se2;
-        se=se-2*se2-e2-n2;
+        n=n-n2-ne2*(sqrt(2.0)/2.0)-se2*(sqrt(2.0)/2.0);
+        ne=ne-ne2-n2*(sqrt(2.0)/2.0)-e2*(sqrt(2.0)/2.0);
+        e=e-e2-ne2*(sqrt(2.0)/2.0)-se2*(sqrt(2.0)/2.0);
+        se=se-se2-e2*(sqrt(2.0)/2.0)-n2*(sqrt(2.0)/2.0);
     }}
 
     end_stop_out[gindex2(coord)*8+4]= (uchar)fmax(fmin((float)n,(float)255.0), (float)0.0);
-    end_stop_out[gindex2(coord)*8+5]= (uchar)fmax(fmin((float)ne,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+5]= (uchar)fmax(fmin((float)ne*2,(float)255.0), (float)0.0);
     end_stop_out[gindex2(coord)*8+6]= (uchar)fmax(fmin((float)e,(float)255.0), (float)0.0);
-    end_stop_out[gindex2(coord)*8+7]= (uchar)fmax(fmin((float)se,(float)255.0), (float)0.0);
+    end_stop_out[gindex2(coord)*8+7]= (uchar)fmax(fmin((float)se*2,(float)255.0), (float)0.0);
 
 }}
 

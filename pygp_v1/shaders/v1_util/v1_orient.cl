@@ -59,10 +59,10 @@ void blob_to_orient(
     temp.z = max((short)(temp.z), (short)(0));
     temp.w = max((short)(temp.w), (short)(0));
 
-    orient_out[gindex2(coord)*4+0] = min((short)(temp.x>>2),(short)(255));
-    orient_out[gindex2(coord)*4+1] = min((short)(temp.y>>2),(short)(255));
-    orient_out[gindex2(coord)*4+2] = min((short)(temp.z>>2),(short)(255));
-    orient_out[gindex2(coord)*4+3] = min((short)(temp.w>>2),(short)(255));
+    orient_out[gindex2(coord)*4+0] = min((short)(temp.x),(short)(255));
+    orient_out[gindex2(coord)*4+1] = min((short)(temp.y),(short)(255));
+    orient_out[gindex2(coord)*4+2] = min((short)(temp.z),(short)(255));
+    orient_out[gindex2(coord)*4+3] = min((short)(temp.w),(short)(255));
 }}
 
 

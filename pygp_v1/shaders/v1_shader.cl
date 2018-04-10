@@ -55,6 +55,12 @@ __kernel void blob(
 
     orient_group_to_end_stop(coord, orient_group_out, end_stop_out);
 
+    /*orient_dbg(
+        coord,
+        orient_out,
+        orient_dbg_out
+    );*/
+
     end_stop_dbg(
         coord,
         end_stop_out,
