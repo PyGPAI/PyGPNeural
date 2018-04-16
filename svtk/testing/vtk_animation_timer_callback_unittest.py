@@ -1,5 +1,5 @@
-from vtk_animation_timer_callback import VTKAnimationTimerCallback
-from vtk_displayer import VTKDisplayer
+from svtk.vtk_animation_timer_callback import VTKAnimationTimerCallback
+from svtk.vtk_displayer import VTKDisplayer
 import unittest
 import random
 

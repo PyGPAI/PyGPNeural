@@ -1,5 +1,5 @@
 import vtk
-from lib.input_util.global_util.key_combinations import GlobalKeyCombinationDictionary as KeyComboClass
+from svtk.lib.input_util.global_util.key_combinations import GlobalKeyCombinationDictionary as KeyComboClass
 
 global_interactor_parent = None
 

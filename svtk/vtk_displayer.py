@@ -1,8 +1,9 @@
 import vtk
-from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+#unknown unused import:
+#from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from vtk_animation_timer_callback import VTKAnimationTimerCallback
-from vtk_keypress_interactor_style import VTKKeyPressInteractorStyle
+from svtk.vtk_animation_timer_callback import VTKAnimationTimerCallback
+from svtk.vtk_keypress_interactor_style import VTKKeyPressInteractorStyle
 
 
 class VTKDisplayer:
@@ -26,6 +27,8 @@ class VTKDisplayer:
         self.callback_class = callback_class
         self.callback_class_args = args
         self.callback_class_kwargs = kwargs
+
+        self.cb = self.callback_class(*self.callback_class_args, **self.callback_class_kwargs)
 
         self._set_poly_data()
 
@@ -58,7 +61,7 @@ class VTKDisplayer:
 
         point_actor.SetMapper(point_mapper)
         line_actor.SetMapper(line_mapper)
-        point_actor.GetProperty().SetPointSize(60)  # todo:allow modification
+        point_actor.GetProperty().SetPointSize(6)  # todo:allow modification
         # actor.GetProperty().SetPointColor
 
         renderer = vtk.vtkRenderer()
@@ -91,20 +94,20 @@ class VTKDisplayer:
 
         render_window_interactor.Initialize()
 
-        cb = self.callback_class(*self.callback_class_args, **self.callback_class_kwargs)
-        cb.interactor_style = interactor_style  # allows adding/removing input functions
-        cb.renderer = renderer
-        cb.points = self.points
-        cb.point_vertices = self.vertices
-        cb.points_poly = self.points_poly
-        cb.point_colors = self.point_colors
-        cb.lines = self.lines
-        cb.lines_poly = self.lines_poly
-        cb.line_colors = self.line_colors
 
-        render_window_interactor.AddObserver('TimerEvent', cb.execute)
+        self.cb.interactor_style = interactor_style  # allows adding/removing input functions
+        self.cb.renderer = renderer
+        self.cb.points = self.points
+        self.cb.point_vertices = self.vertices
+        self.cb.points_poly = self.points_poly
+        self.cb.point_colors = self.point_colors
+        self.cb.lines = self.lines
+        self.cb.lines_poly = self.lines_poly
+        self.cb.line_colors = self.line_colors
+
+        render_window_interactor.AddObserver('TimerEvent', self.cb.execute)
         timer_id = render_window_interactor.CreateRepeatingTimer(10)
         render_window_interactor.Start()
 
         # cleanup after loop
-        cb.at_end()
+        self.cb.at_end()

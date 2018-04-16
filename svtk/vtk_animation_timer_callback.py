@@ -4,10 +4,10 @@ import numpy as np
 import vtk
 from vtk.util import numpy_support
 
-from lib.toolbox.integer import minmax
-from lib.toolbox.idarray import IdArray
+from svtk.lib.toolbox.integer import minmax
+from svtk.lib.toolbox.idarray import IdArray
 
-from lib.toolbox.numpy_helpers import normalize
+from svtk.lib.toolbox.numpy_helpers import normalize
 import math as m
 
 class VTKAnimationTimerCallback(object):
